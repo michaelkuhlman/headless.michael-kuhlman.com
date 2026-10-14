@@ -19,6 +19,11 @@ classic Luma-based theme there (ThirdShot), so the two demo stores can be compar
   Sessions spawned under pm2 inherit `max_memory_restart=524288000` and nexus secrets in their env, and the pm2 CLI
   copies both into any app it starts (that capped this app at 500 MB and caused restart storms on 2026-10-13).
   The real limit is 1536M (sharp + prefetch bursts reach 600-850 MB).
+- Compression / static (2026-10-13): `compress: false` in next.config; nginx compresses (brotli from
+  `/etc/nginx/conf.d/brotli.conf`, gzip fallback in the vhost). nginx serves `/_next/static/*` itself from BOTH slots
+  (`try_files /.next-b/static/... /.next-a/static/...`, Node is only the fallback), so HTML still cached from the previous
+  build finds its chunks; hl-deploy precompresses each build's assets (`.br` q11 + `.gz` -9, about 13% smaller than gzip)
+  for `brotli_static` / `gzip_static`. A third slot name would need the nginx location updated too.
 - Magento -> headless invalidation: `/api/revalidate` is called by the m2 module on 127.0.0.1:3030; nginx 404s it publicly.
   `NODE_ENV=production` is exported on this box, so `npm ci --include=dev`.
 
