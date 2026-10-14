@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 
 export const metadata: Metadata = { title: 'Popular searches', alternates: { canonical: '/search/term/popular/' } };
-const TERMS = ['ball', 'cap', 'paddle', 'paddles', 'tape'];
+// Magento GraphQL has no popular-terms query: mirrors the classic store's /search/term/popular/ list (search_query, num_results > 0)
+const TERMS = ['ball', 'cap', 'grip', 'pad', 'paddle', 'paddles', 'tape'];
 export default function Page() {
   return (
     <div className="ts-container" style={{ paddingBottom: 40 }}>

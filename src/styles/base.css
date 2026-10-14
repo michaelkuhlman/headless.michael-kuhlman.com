@@ -294,7 +294,6 @@ input[aria-invalid='true']:focus { box-shadow: 0 0 0 3px rgba(201, 96, 58, 0.18)
   .ts-motion .ts-reveal { opacity: 1; transform: none; }
 }
 
-/* view transitions between pages (cross-fade the main column, keep header/footer still) */
-@view-transition { navigation: auto; }
-::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.18s; }
+/* No @view-transition { navigation: auto }: Chrome then holds the first paint of a page load (Lighthouse: FCP 0.2 s -> 2.2 s),
+   and in-app navigation is client-side anyway. */
 @media (max-width: 767px) { .ts-breadcrumbs { display: none; } }
