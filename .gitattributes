@@ -1,0 +1,23 @@
+# LF everywhere, in the repository and in every checkout. The server is Linux; a Windows laptop clone that wrote
+# CRLF would break the bash hooks and deploy/hl-deploy, and turn every line of every file into a diff.
+* text=auto eol=lf
+
+# Binary: never converted, never diffed as text
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.eot binary
+*.pdf binary
+*.zip binary
+*.gz binary
+
+# GitHub: fold the lockfile in diffs and leave it out of the language stats
+package-lock.json linguist-generated=true

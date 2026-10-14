@@ -1,27 +1,137 @@
 #!/usr/bin/env bash
-# headless.michael-kuhlman.com pre-commit guard: blocks token-shaped secrets, real values from /etc/headless.env,
-# credential/database files and backup leftovers in the STAGED files. Never bypass with --no-verify.
+# headless.michael-kuhlman.com pre-commit guard. Tracked in .githooks/ and active through core.hooksPath on the server
+# (hlgit) and in every laptop clone, so every commit gets it, whoever makes it.
+# It checks the STAGED version of each added or changed file and blocks the commit on:
+#   - secrets: token-shaped strings, and (on the server) the real values from /etc/headless.env and the Cloudflare env
+#   - credential / database / dump files (tracked templates are *.example) and editor or backup leftovers
+#   - installed or built output (node_modules/, .next*/, out/, *.tsbuildinfo, next-env.d.ts): never tracked
+#   - files over 5 MB, unresolved merge-conflict markers, hooks or deploy scripts that lost their executable bit
+#   - invalid JSON / YAML / XML / SVG, Python, shell and JavaScript syntax errors
+#   - TypeScript errors in the staged .ts/.tsx files (errors elsewhere in the tree are only a warning: they are
+#     usually another session's unfinished work)
+# Fix what it reports, re-stage, commit again. Never bypass it with --no-verify.
+# Audit every tracked file instead of the staged ones:  HL_PRECOMMIT_ALL=1 hlgit hook run pre-commit
 set -u
 export LC_ALL=C
 fail=0
-err() { printf 'pre-commit: %s\n' "$*" >&2; fail=1; }
-secret_re='sk-ant-[A-Za-z0-9_-]{20,}|gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|[sr]k_live_[A-Za-z0-9]{16,}|xox[baprs]-[A-Za-z0-9-]{16,}|[0-9]{8,10}:AA[A-Za-z0-9_-]{33}|AIza[0-9A-Za-z_-]{35}|cfat_[A-Za-z0-9_-]{20,}'
+err()  { printf 'pre-commit: %s\n' "$*" >&2; fail=1; }
+
+py=
+for c in python3 python; do
+  if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import sys' >/dev/null 2>&1; then py=$c; break; fi
+done
+node=
+command -v node >/dev/null 2>&1 && node=node
+
+secret_re='sk-ant-[A-Za-z0-9_-]{20,}|gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|[sr]k_live_[A-Za-z0-9]{16,}|sk_test_[A-Za-z0-9]{16,}|whsec_[A-Za-z0-9]{16,}|xox[baprs]-[A-Za-z0-9-]{16,}|[0-9]{8,10}:AA[A-Za-z0-9_-]{33}|AIza[0-9A-Za-z_-]{35}|cfat_[A-Za-z0-9_-]{20,}'
+
+# Real secret values (server only; the files are absent elsewhere): every *PASS* / *SECRET* / *TOKEN* / *KEY* value
+# of 12+ characters (the revalidate secret, the Cloudflare API token). Only line numbers are ever printed.
 vals=$(mktemp) || exit 1
-trap 'rm -f "$vals"' EXIT
+tmpd=$(mktemp -d) || exit 1
+trap 'rm -rf "$vals" "$tmpd"' EXIT
 chmod 600 "$vals"
-[ -r /etc/headless.env ] && sed -nE 's/^[[:space:]]*[A-Za-z0-9_]*(PASS|SECRET|TOKEN|KEY)[A-Za-z0-9_]*[[:space:]]*=[[:space:]]*//p' /etc/headless.env \
-  | sed -E "s/^[\"']//; s/[\"'][[:space:]]*\$//" | awk 'length($0) >= 12' > "$vals"
+for f in /etc/headless.env "$HOME/.config/cloudflare/michael-kuhlman.env"; do
+  [ -r "$f" ] && sed -nE \
+    's/^[[:space:]]*(export[[:space:]]+)?[A-Za-z0-9_]*(PASS|SECRET|TOKEN|KEY)[A-Za-z0-9_]*[[:space:]]*=[[:space:]]*//p' "$f"
+done 2>/dev/null | sed -E "s/^[\"']//; s/[\"'][[:space:]]*\$//" | awk 'length($0) >= 12' > "$vals"
+
+if [ "${HL_PRECOMMIT_ALL:-}" = 1 ]; then list() { git ls-files -z; }
+else list() { git diff --cached --name-only --diff-filter=ACMR -z; }
+fi
+
+n=0
+ts_files=()
 while IFS= read -r -d '' p; do
+  n=$((n + 1))
   case "$p" in
-    *.example) ;;
-    .env|*/.env|.env.*|*.pem|*.key|*.sqlite|*.db|*.sql|*.sql.gz) err "$p: credential or database file." ;;
+    *.example|*.example.*|*.sample) ;;
+    .env|*/.env|.env.*|*/.env.*|.npmrc|*/.npmrc|*.pem|*.key|*.p12|*.pfx|*id_rsa*|*id_ed25519*|*_github|*_github.pub)
+      err "$p: looks like a credential file. Secrets live in /etc/headless.env, never in git (templates are *.example)." ;;
+    *.sql|*.sql.gz|*.dump|*.sqlite|*.sqlite3|*.db|*.db-wal|*.db-shm)
+      err "$p: database or dump file. Keep it out of git." ;;
   esac
-  case "$p" in *.bak|*.old|*.orig|*.production|*.swp|*.tmp|*~) err "$p: backup leftover; git history is the backup." ;; esac
+  case "$p" in
+    *.bak|*.old|*.orig|*.rej|*.production|*.save|*.swp|*.swo|*.tmp|*~)
+      err "$p: editor or backup leftover. Delete it; git history is the backup." ;;
+  esac
+  case "$p" in
+    node_modules/*|*/node_modules/*|.next/*|.next-*|out/*|build/*|dist/*|*.tsbuildinfo|next-env.d.ts)
+      err "$p: installed or built output. Rebuild it, never commit it (git add -f bypasses .gitignore)." ;;
+  esac
+  case "$p" in
+    .githooks/*|deploy/hl-deploy|*.sh)
+      mode=$(git ls-files -s -- "$p" | awk '{print $1; exit}')
+      [ "$mode" = 100755 ] || err "$p: not executable (mode $mode); git would skip it. Run: hlgit update-index --chmod=+x $p" ;;
+  esac
+
+  size=$(git cat-file -s ":$p" 2>/dev/null || echo 0)
+  if [ "$size" -gt 5242880 ]; then
+    err "$p: $((size / 1024)) KB, over the 5 MB limit. Compress it (images belong in Magento's media, fonts are ~50 KB) or keep it out of git."
+  fi
+
   lines=$(git show ":$p" 2>/dev/null | grep -I -n -o -E "$secret_re" | cut -d: -f1 | sort -un | paste -sd, -)
-  [ -n "$lines" ] && err "$p: token-shaped secret on line(s) $lines."
+  [ -n "$lines" ] && err "$p: token-shaped secret on line(s) $lines. Secrets live in /etc/headless.env, never in git."
   if [ -s "$vals" ]; then
     lines=$(git show ":$p" 2>/dev/null | grep -I -n -F -f "$vals" | cut -d: -f1 | sort -un | paste -sd, -)
-    [ -n "$lines" ] && err "$p: contains a real secret from /etc/headless.env (line(s) $lines)."
+    [ -n "$lines" ] && err "$p: contains a real secret value from the server env files (line(s) $lines)."
   fi
-done < <(git diff --cached --name-only --diff-filter=ACMR -z)
-exit $fail
+  lines=$(git show ":$p" 2>/dev/null | grep -I -n -E '^(<{7}|>{7})( |$)' | cut -d: -f1 | sort -un | paste -sd, -)
+  [ -n "$lines" ] && err "$p: unresolved merge-conflict marker on line(s) $lines."
+
+  case "$p" in
+    *.py)
+      if [ -n "$py" ]; then
+        out=$(git show ":$p" | "$py" -c 'import ast,sys; ast.parse(sys.stdin.buffer.read(), sys.argv[1])' "$p" 2>&1) || err "$p: Python syntax error: $(printf '%s\n' "$out" | tail -n 1)"
+      fi ;;
+    *.json|*.webmanifest)
+      case "$p" in tsconfig*.json) ;; *)   # tsconfig allows comments; tsc checks it
+      if [ -n "$py" ]; then
+        out=$(git show ":$p" | "$py" -c 'import json,sys; json.loads(sys.stdin.buffer.read().decode("utf-8-sig"))' 2>&1) || err "$p: invalid JSON: $(printf '%s\n' "$out" | tail -n 1)"
+      fi ;; esac ;;
+    *.yml|*.yaml)
+      if [ -n "$py" ] && "$py" -c 'import yaml' >/dev/null 2>&1; then
+        out=$(git show ":$p" | "$py" -c 'import sys,yaml; list(yaml.safe_load_all(sys.stdin.buffer.read()))' 2>&1) || err "$p: invalid YAML: $(printf '%s\n' "$out" | tail -n 2 | head -n 1)"
+      fi ;;
+    *.xml|*.svg)
+      if [ -n "$py" ]; then
+        out=$(git show ":$p" | "$py" -c 'import sys,xml.dom.minidom as m; m.parseString(sys.stdin.buffer.read())' 2>&1) || err "$p: invalid XML: $(printf '%s\n' "$out" | tail -n 1)"
+      fi ;;
+    *.js|*.cjs|*.mjs)
+      if [ -n "$node" ]; then
+        t="$tmpd/check.${p##*.}"
+        git show ":$p" > "$t" 2>/dev/null
+        out=$("$node" --check "$t" 2>&1) || err "$p: JavaScript syntax error: $(printf '%s\n' "$out" | grep -m1 -E 'Error' || printf '%s\n' "$out" | tail -n 1)"
+      fi ;;
+    *.ts|*.tsx|*.mts|*.cts) ts_files+=("$p") ;;
+  esac
+  case "$p" in
+    *.sh|.githooks/*|deploy/hl-deploy)
+      out=$(git show ":$p" | bash -n 2>&1) || err "$p: shell syntax error: $(printf '%s\n' "$out" | head -n 1)" ;;
+  esac
+done < <(list)
+
+# TypeScript: one tsc run (incremental, ~3 s warm) over the work tree, judged by the staged files' paths.
+top=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ "${#ts_files[@]}" -gt 0 ] && [ "${HL_PRECOMMIT_ALL:-}" != 1 ] && [ -n "$top" ] && [ -n "$node" ] && [ -f "$top/node_modules/typescript/bin/tsc" ]; then
+  out=$(cd "$top" && "$node" node_modules/typescript/bin/tsc --noEmit --pretty false 2>&1)
+  if [ -n "$out" ]; then
+    mine=$(printf '%s\n' "$out" | grep -F -f <(printf '%s(\n' "${ts_files[@]}") || true)
+    if [ -n "$mine" ]; then
+      err "TypeScript errors in the files you are committing:"
+      printf '%s\n' "$mine" | head -n 20 | sed 's/^/  | /' >&2
+    else
+      echo "pre-commit: WARNING tsc reports errors in files you are NOT committing (another session's work?):" >&2
+      printf '%s\n' "$out" | grep -E '\(' | head -n 5 | sed 's/^/  | /' >&2
+    fi
+  fi
+elif [ "${#ts_files[@]}" -gt 0 ] && [ "${HL_PRECOMMIT_ALL:-}" != 1 ]; then
+  echo "pre-commit: WARNING no node_modules/typescript here, so TypeScript was not checked (hl-deploy's build will)." >&2
+fi
+
+if [ "$fail" -ne 0 ]; then
+  echo "pre-commit: commit blocked (see above). Fix the files, re-stage them and commit again. Do not use --no-verify." >&2
+  exit 1
+fi
+[ "${HL_PRECOMMIT_ALL:-}" = 1 ] && echo "pre-commit: $n tracked files checked, all clean."
+exit 0

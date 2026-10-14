@@ -1,14 +1,97 @@
+# headless.michael-kuhlman.com
+# Tracked: the source (src/, public/), its config (package*.json, next.config.ts, tsconfig.json, ecosystem.config.cjs),
+# deploy/, .githooks/ and the docs (*.md). Everything below is installed, built, secret, or local to one machine.
+# A file you need shows as ignored? `hlgit check-ignore -v <path>` names the rule: change the rule here, never `add -f`.
+
+# --- dependencies (npm ci --include=dev rebuilds them from package-lock.json)
 node_modules/
-.next/
-*.tsbuildinfo
+.pnp
+.pnp.*
+.npm/
+.pnpm-store/
+.yarn/
+
+# --- Next.js / TypeScript build output
+# hl-deploy builds into blue/green slots (.next-a/, .next-b/) and names the live one in .next-active
+/.next/
+/.next-*/
+/.next-active
+/out/
+/build/
+/dist/
+.turbo/
+.vercel/
+.swc/
 next-env.d.ts
-.env*
+*.tsbuildinfo
+
+# --- secrets: they live in /etc/headless.env and ~/.config/ on the server, never in the repo (templates: *.example)
+.env
+.env.*
 !.env.example
+.npmrc
+secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+*id_rsa*
+*id_ed25519*
+*_github
+*_github.pub
+
+# --- databases and dumps
+*.sqlite
+*.sqlite3
+*.db
+*.db-wal
+*.db-shm
+*.sql
+*.sql.gz
+*.dump
+
+# --- logs, caches, test and audit output (screenshots, Lighthouse runs and scratch files belong in /tmp, not here)
 *.log
+logs/
+.cache/
+.eslintcache
+.stylelintcache
+coverage/
+.nyc_output/
+/test-results/
+/playwright-report/
+/blob-report/
+/.lighthouse/
+.lighthouseci/
+/tmp/
+__pycache__/
+
+# --- editor, OS and backup leftovers (git history is the backup)
+.DS_Store
+Thumbs.db
+desktop.ini
+*.lnk
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
 *.bak
 *.old
 *.orig
-.next-a/
-.next-b/
-.next-build/
-.next-active
+*.rej
+*.save
+*.tmp
+*.production
+
+# --- archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+
+# --- AI tools: per-machine state (shared Claude Code settings would go in a tracked .claude/settings.json)
+.claude/settings.local.json
+.claude/worktrees/
+CLAUDE.local.md

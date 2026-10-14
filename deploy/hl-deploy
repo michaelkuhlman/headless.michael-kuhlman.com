@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+# hl-deploy: bring headless.michael-kuhlman.com level with GitHub, build + deploy it, then purge its Cloudflare edge
+# cache (cached HTML references hashed /_next/static chunks that a new build replaces) and warm the main pages.
+#   ~/bin/hl-deploy               on the server (~/bin/hl-deploy is a symlink to this tracked file, deploy/hl-deploy)
+#   ssh atlas bin/hl-deploy       from a laptop clone, right after pushing
+#   hl-deploy --sync-only         only step 1: merge GitHub's new commits into this tree and push the server's own
+#   hl-deploy --no-build          no sync, no build: reload pm2 onto the live slot
+#   hl-deploy --rollback          no sync, no build: switch back to the previous slot
+# 1. git: fetch GitHub; fast-forward to it, push this server's unpushed commits, or merge when both moved (the merge
+#    commit pushes itself through .githooks/post-merge). A conflict, or an incoming change to a file somebody is
+#    editing here, aborts cleanly and changes nothing. npm ci --include=dev when the incoming commits change the
+#    lockfile. GitHub unreachable: a warning, then the deploy goes ahead with the tree as it is.
+# 2. Blue/green: builds into the idle slot (.next-a or .next-b), then reloads pm2 onto it via ecosystem.config.cjs,
+#    so the live server never reads a half-written build. The previous slot stays on disk for open tabs and rollback.
+# It builds the WORK TREE, uncommitted edits included, and lists any such files at the end: commit them (by name).
+set -euo pipefail
+DOC=/var/www/headless.michael-kuhlman.com
+G=/home/kai/bin/hlgit
+say() { printf 'hl-deploy: %s\n' "$*"; }
+die() { printf 'hl-deploy: %s\n' "$*" >&2; exit 1; }
+# pm2 lives in ~/.npm-global/bin, which a non-interactive `ssh atlas bin/hl-deploy` does not have on PATH
+export PATH="$HOME/.npm-global/bin:$PATH"
+
+mode=deploy
+case "${1:-}" in
+  '') ;;
+  --sync-only) mode=sync ;;
+  --no-build) mode=nobuild ;;
+  --rollback) mode=rollback ;;
+  -h|--help) sed -n '2,15p' "$(readlink -f "$0")" | sed 's/^# \{0,1\}//'; exit 0 ;;
+  *) die "unknown option '$1' (use --sync-only, --no-build, --rollback or nothing)" ;;
+esac
+
+exec 9>/tmp/hl-deploy.lock
+flock -n 9 || die "another deploy is running"
+cd "$DOC"
+
+# ---- 1. git
+sync_github() {
+  local before there err
+  err=$(mktemp)
+  if ! $G fetch --quiet origin main 2>"$err"; then
+    say "WARNING git: GitHub unreachable ($(tail -n 1 "$err")); going on with the tree as it is"
+    rm -f "$err"; return 0
+  fi
+  rm -f "$err"
+  before=$($G rev-parse HEAD)
+  there=$($G rev-parse origin/main)
+  if [ "$before" = "$there" ]; then
+    say "git: up to date with GitHub at ${before:0:7}"
+  elif $G merge-base --is-ancestor origin/main HEAD; then
+    say "git: pushing this server's $($G rev-list --count origin/main..HEAD) unpushed commit(s) to GitHub"
+    $G push --quiet origin main
+  elif $G merge-base --is-ancestor HEAD origin/main; then
+    $G merge --ff-only --quiet origin/main || die "fast-forward refused (an uncommitted edit here touches an incoming file?). Nothing changed."
+    say "git: fast-forwarded ${before:0:7} -> $($G rev-parse --short HEAD)"
+  else
+    if ! $G merge --no-ff --no-edit --quiet origin/main; then
+      $G merge --abort 2>/dev/null || true
+      die "the server and GitHub changed the same lines; merge aborted, nothing changed. Merge by hand: hlgit merge origin/main, fix, commit."
+    fi
+    say "git: merged GitHub's commits into the server's ($($G rev-parse --short HEAD))"
+  fi
+  if $G diff --name-only "$before" HEAD | grep -q -E '^package(-lock)?\.json$'; then
+    say "npm ci --include=dev (the incoming commits changed dependencies)"
+    npm ci --include=dev --no-audit --no-fund --loglevel=error
+  fi
+}
+
+case "$mode" in
+  sync) sync_github; exit 0 ;;
+  deploy) sync_github ;;
+esac
+
+# ---- 2. build + switch
+cur=$(cat .next-active 2>/dev/null || echo .next)
+if [[ "$cur" == ".next-a" ]]; then next=.next-b; else next=.next-a; fi
+case "$mode" in
+  nobuild) next=$cur ;;
+  rollback) [[ -f "$next/BUILD_ID" ]] || die "no build in $next to roll back to" ;;
+  deploy)
+    NEXT_DIST_DIR=$next npx next build
+    [[ -f "$next/BUILD_ID" ]] || die "build produced no $next/BUILD_ID, live site untouched" ;;
+esac
+echo "$next" > .next-active
+# clean env: sessions spawned under pm2 inherit pm2_env vars (max_memory_restart=500M, nexus secrets) that the
+# pm2 CLI would copy into the app
+env -i HOME="$HOME" PATH="$PATH" PM2_HOME="$HOME/.pm2" pm2 startOrReload ecosystem.config.cjs --only headless-site --update-env >/dev/null
+sleep 3
+for i in $(seq 1 20); do curl -fs -o /dev/null http://127.0.0.1:3030/ && break; sleep 1; done
+say "serving from $next (previous: $cur)"
+
+# ---- 3. edge cache + warm-up
+source "$HOME/.config/cloudflare/michael-kuhlman.env"
+purge=$(curl -sS -X POST -H "Authorization: Bearer $CF_API_TOKEN" -H "Content-Type: application/json" \
+  "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/purge_cache" \
+  --data '{"hosts":["headless.michael-kuhlman.com"]}' 2>&1 || true)
+case "$purge" in
+  *'"success":true'*) say "edge cache purged" ;;
+  *) say "WARNING edge cache purge failed; pages may show the old build until their cache expires" ;;
+esac
+for p in / /paddles.html /balls.html /accessories.html /bags-covers.html /apparel-headwear.html /court-training.html /about /faq /shipping-returns /contact; do
+  curl -s -o /dev/null -w "%{http_code} %{time_total}s $p\n" "https://headless.michael-kuhlman.com$p"
+done
+
+# ---- 4. what is live but not in git
+dirty=$($G status --porcelain --untracked-files=all -- src public next.config.ts tsconfig.json package.json \
+        package-lock.json ecosystem.config.cjs | cut -c4- || true)
+if [ -n "$dirty" ]; then
+  say "NOTE live now but NOT committed (commit them by name once they are right):"
+  printf '%s\n' "$dirty" | head -n 20 | sed 's/^/  | /'
+fi
