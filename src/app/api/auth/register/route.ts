@@ -1,7 +1,10 @@
+import { crossOrigin } from '@/lib/server/sameOrigin';
 import { magento } from '@/lib/magento/client';
 import { errorMessage, issueToken, mergeGuestCart, sessionCookies } from '../session';
 
 export async function POST(req: Request) {
+  const bad = crossOrigin(req);
+  if (bad) return bad;
   const b = (await req.json().catch(() => ({}))) as {
     firstname?: string; lastname?: string; email?: string; password?: string; newsletter?: boolean; guestCartId?: string;
   };

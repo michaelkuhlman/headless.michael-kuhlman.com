@@ -13,6 +13,7 @@ export async function POST(req: Request) {
   const secret = process.env.HEADLESS_REVALIDATE_SECRET;
   if (!secret) return Response.json({ ok: false, message: 'not configured' }, { status: 503 });
   const body = await req.text();
+  if (body.length > 256_000) return Response.json({ ok: false }, { status: 413 });
   const sig = req.headers.get('x-signature') ?? '';
   const want = createHmac('sha256', secret).update(body).digest('hex');
   const a = Buffer.from(sig);

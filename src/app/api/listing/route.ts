@@ -10,8 +10,9 @@ export async function GET(req: Request) {
   const sp = new URL(req.url).searchParams;
   const filters: Record<string, string[]> = {};
   for (const [k, v] of sp.entries()) {
+    if (Object.keys(filters).length >= 10) break; // bounded work per request
     if (RESERVED.has(k) || !/^[a-z0-9_]{1,40}$/.test(k)) continue;
-    const vals = v.split(',').filter((x) => /^[A-Za-z0-9=_-]{1,40}$/.test(x)).sort();
+    const vals = v.split(',').filter((x) => /^[A-Za-z0-9=_-]{1,40}$/.test(x)).slice(0, 20).sort();
     if (vals.length) filters[k] = vals;
   }
   let price: { from?: number; to?: number } | null = null;

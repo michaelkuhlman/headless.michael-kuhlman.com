@@ -1,8 +1,11 @@
+import { crossOrigin } from '@/lib/server/sameOrigin';
 import { cookies } from 'next/headers';
 import { magentoRaw } from '@/lib/magento/client';
 
 /** Browser GraphQL proxy: same-origin (no CORS), adds the customer's bearer token from the httpOnly cookie. */
 export async function POST(req: Request) {
+  const bad = crossOrigin(req);
+  if (bad) return bad;
   const body = await req.text();
   if (body.length > 64_000) return Response.json({ errors: [{ message: 'Request too large' }] }, { status: 413 });
   const token = (await cookies()).get('hl_token')?.value ?? null;
