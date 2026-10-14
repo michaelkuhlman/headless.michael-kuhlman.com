@@ -31,6 +31,9 @@ function Line({ it }: { it: CartItem }) {
   };
   const src = lineImage(it);
   const href = `/${it.product.url_key}.html`;
+  // Edit opens the product with this line's options and quantity filled in; the buy box then updates the line
+  const optUids = (it.configurable_options ?? []).map((o) => o.configurable_product_option_value_uid).filter(Boolean);
+  const editHref = `${href}?edit=${encodeURIComponent(it.uid)}&qty=${it.quantity}${optUids.length ? `&opt=${optUids.map((u) => encodeURIComponent(u!)).join(',')}` : ''}`;
   const opts = options(it);
   const disc = it.prices.total_item_discount?.value ?? 0;
   return (
@@ -53,7 +56,7 @@ function Line({ it }: { it: CartItem }) {
           </dl>
         )}
         <div className="ts-line__acts">
-          <Link href={href} aria-label={`Edit ${it.product.name}`} title="Edit">
+          <Link href={editHref} aria-label={`Edit ${it.product.name}`} title="Edit">
             <Icon name="edit" />
           </Link>
           <button type="button" aria-label={`Remove ${it.product.name}`} title="Remove" disabled={pending} onClick={() => run(() => removeItem(it.uid))}>
@@ -149,6 +152,15 @@ function PairsWell({ keys }: { keys: string[] }) {
 export function CartView({ regions }: { regions: Region[] }) {
   const { cart, ready } = useCart();
   const items = cart?.items ?? [];
+
+  // back from editing a line on the product page (BuyBox): confirm, then tidy the URL
+  useEffect(() => {
+    const sp = new URLSearchParams(location.search);
+    const name = sp.get('updated');
+    if (!name) return;
+    showToast(`${name.slice(0, 120)} was updated in your shopping cart.`);
+    history.replaceState(history.state, '', location.pathname);
+  }, []);
 
   if (!ready) {
     return (

@@ -65,6 +65,21 @@ export function SearchView({ labels }: { labels: Record<string, string> }) {
   );
 }
 
+/** Static shell for the search page (same boxes as SearchView while loading), so nothing jumps when it hydrates. */
+export function SearchFallback() {
+  return (
+    <div className="ts-results">
+      <Breadcrumbs items={[{ label: 'Search results' }]} />
+      <h1 className="ts-results__title">Search results</h1>
+      <div className="ts-grid ts-results__skeleton" aria-busy="true">
+        {Array.from({ length: 6 }, (_, i) => (
+          <span key={i} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function SavedView() {
   const keys = saved.use();
   const [items, setItems] = useState<ProductCard[] | null>(null);

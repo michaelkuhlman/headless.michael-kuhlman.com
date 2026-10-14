@@ -6,7 +6,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../Icon';
 import { Price, Stars } from '../ProductCard';
 import { SaveButton } from '../CardActions';
-import { addToCart, getCartState, useCart, type AddLine } from '@/lib/client/cart';
+import { addToCart, getCartState, removeItem, updateQty, useCart, type AddLine } from '@/lib/client/cart';
+import { useRouter } from 'next/navigation';
 import { mediaSrc, money } from '@/lib/format';
 import type { BundleItem, Product, Variant } from '@/lib/magento/types';
 
@@ -76,7 +77,30 @@ export function BuyBox({
   const [sticky, setSticky] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
-  useCart();
+  const router = useRouter();
+  const cartNow = useCart().cart;
+  // Editing a bag line (?edit=<item uid>&qty=&opt=<value uids>, from the bag page's pencil), like Luma's configure page.
+  // Read from location on every show: React re-runs effects when a hidden (cached) route becomes visible again.
+  const [edit, setEdit] = useState<{ uid: string; qty: number } | null>(null);
+  useEffect(() => {
+    if (compact) return;
+    const sp = new URLSearchParams(location.search);
+    const uid = sp.get('edit');
+    if (!uid) {
+      setEdit(null);
+      return;
+    }
+    const q = Math.max(1, Math.min(10000, parseInt(sp.get('qty') ?? '1', 10) || 1));
+    setEdit({ uid, qty: q });
+    setQty(q);
+    const picks: Record<string, string> = {};
+    for (const u of (sp.get('opt') ?? '').split(',').filter(Boolean)) {
+      const o = opts.find((x) => x.values.some((val) => val.uid === u));
+      if (o) picks[o.attribute_code] = u;
+    }
+    if (Object.keys(picks).length) setSel(picks);
+  }, [compact, opts]);
+  const editing = !!edit && !!cartNow?.items.some((i) => i.uid === edit.uid);
 
   const variant = useMemo(() => {
     if (!p.variants || opts.length === 0 || Object.keys(sel).length < opts.length) return null;
@@ -164,11 +188,29 @@ export function BuyBox({
     }
     setBusy(true);
     const img = mediaSrc(variant?.product.small_image?.url ?? p.small_image?.url);
+    if (editing && edit && !isGrouped) {
+      const before = getCartState().cart?.items.find((i) => i.uid === edit.uid);
+      const ok = await addToCart(lines, undefined, false);
+      if (!ok) {
+        setBusy(false);
+        setErr(getCartState().error ?? 'Could not update the bag.');
+        return;
+      }
+      // Same options: Magento merged the new quantity into the old line, so set it back to the chosen quantity.
+      // Different options: a new line was made, so drop the old one.
+      const after = getCartState().cart?.items.find((i) => i.uid === edit.uid);
+      if (after && before && after.quantity !== before.quantity) await updateQty(edit.uid, qty);
+      else if (after) await removeItem(edit.uid);
+      setBusy(false);
+      router.push(`/checkout/cart/?updated=${encodeURIComponent(p.name)}`);
+      return;
+    }
     const ok = await addToCart(lines, { name: label, image: img, qty: n, options, url_key: p.url_key, crosssell: p.crosssell_products.map((c) => c.url_key) });
     setBusy(false);
     if (ok) onAdded?.();
     else setErr(getCartState().error ?? 'Could not add to bag.');
   };
+  const cta = editing && !isGrouped ? 'Update bag' : 'Add to bag';
 
   const H = headingLevel === 1 ? 'h1' : 'h2';
   const price = variant ? variant.product.price_range : p.price_range;
@@ -357,7 +399,7 @@ export function BuyBox({
                 Adding <span className="ts-spinner" style={{ marginLeft: 10, width: 16, height: 16 }} />
               </>
             ) : (
-              'Add to bag'
+              cta
             )}
           </button>
         </div>
@@ -389,7 +431,7 @@ export function BuyBox({
             </span>
           </div>
           <button type="button" className="ts-button" onClick={add} disabled={busy}>
-            {busy ? 'Adding' : isConf && missing.length ? 'Choose options' : 'Add to bag'}
+            {busy ? 'Adding' : isConf && missing.length ? 'Choose options' : cta}
           </button>
         </div>
       )}

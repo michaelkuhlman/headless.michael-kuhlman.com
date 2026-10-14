@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { openerFocus, trapTab } from '@/lib/client/focus';
 import { usePathname } from 'next/navigation';
 import { Icon } from './Icon';
 import { useQuickView, closeQuickView } from '@/lib/client/ui';
@@ -30,7 +31,7 @@ export function QuickView() {
       prev.current?.focus?.();
       return;
     }
-    prev.current = document.activeElement as HTMLElement;
+    prev.current = openerFocus();
     document.documentElement.classList.add('ts-locked');
     const hit = cache.get(key);
     if (hit) setP(hit);
@@ -46,7 +47,10 @@ export function QuickView() {
         })
         .catch(() => setFailed(true));
     }
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && closeQuickView();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeQuickView();
+      trapTab(e, panel.current);
+    };
     window.addEventListener('keydown', onKey);
     setTimeout(() => panel.current?.focus(), 30);
     return () => window.removeEventListener('keydown', onKey);

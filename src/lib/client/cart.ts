@@ -16,7 +16,7 @@ export const CART_FIELDS = `
     product { uid sku name url_key __typename stock_status small_image { url label }
       price_range { minimum_price { regular_price { value } final_price { value } } } }
     prices { price { value } row_total { value } total_item_discount { value } }
-    ... on ConfigurableCartItem { configurable_options { option_label value_label } configured_variant { sku small_image { url label } } }
+    ... on ConfigurableCartItem { configurable_options { configurable_product_option_value_uid option_label value_label } configured_variant { sku small_image { url label } } }
     ... on BundleCartItem { bundle_options { label values { label quantity } } }
   }
   prices {
@@ -51,7 +51,7 @@ export interface CartItem {
     price_range: { minimum_price: { regular_price: { value: number }; final_price: { value: number } } };
   };
   prices: { price: { value: number }; row_total: { value: number }; total_item_discount: { value: number } | null };
-  configurable_options?: { option_label: string; value_label: string }[];
+  configurable_options?: { configurable_product_option_value_uid?: string; option_label: string; value_label: string }[];
   configured_variant?: { sku: string; small_image: { url: string; label: string | null } | null };
   bundle_options?: { label: string; values: { label: string; quantity: number }[] }[];
 }
@@ -156,33 +156,44 @@ const setGuestId = (id: string | null) => {
 };
 
 let loading: Promise<void> | null = null;
+// Bumped by every new load and by clearCart: a response from an older load (e.g. the customer cart that
+// was requested just before sign-out) is dropped instead of overwriting newer state.
+let gen = 0;
 
 /** Load the current cart (no cart is created until something is added). */
 export function loadCart(force = false): Promise<void> {
   if (loading && !force) return loading;
-  loading = (async () => {
+  const g = ++gen;
+  const apply = (patch: Partial<State>) => {
+    if (g === gen) set(patch);
+  };
+  let p: Promise<void> | undefined = undefined;
+  p = (async () => {
+    await null; // keep the finally below after `loading = p`, even on the synchronous paths
     try {
       if (getAuth().loggedIn) {
         const d = await gql<{ customerCart: Cart }>(`{ customerCart { ${CART_FIELDS} } }`);
-        set({ cart: d.customerCart, ready: true });
+        if (getAuth().loggedIn) apply({ cart: d.customerCart, ready: true });
         return;
       }
       const id = guestId();
       if (!id) {
-        set({ cart: null, ready: true });
+        apply({ cart: null, ready: true });
         return;
       }
       const d = await gql<{ cart: Cart }>(`query ($id: String!) { cart(cart_id: $id) { ${CART_FIELDS} } }`, { id });
-      set({ cart: d.cart, ready: true });
+      apply({ cart: d.cart, ready: true });
     } catch (e) {
+      if (g !== gen) return;
       // Expired / ordered / foreign cart: start fresh.
       if (e instanceof GqlError && /cart|authoriz|active/i.test(e.message)) setGuestId(null);
       set({ cart: null, ready: true });
     } finally {
-      loading = null;
+      if (loading === p) loading = null;
     }
   })();
-  return loading;
+  loading = p;
+  return p;
 }
 
 async function ensureCartId(): Promise<string> {
@@ -299,6 +310,7 @@ export function setCart(cart: Cart | null) {
 
 /** After an order is placed the cart is gone. */
 export function clearCart() {
+  gen++;
   setGuestId(null);
   set({ cart: null });
 }

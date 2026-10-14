@@ -62,12 +62,31 @@ function priceBounds(items: ProductCard[]): [number, number] {
   return [Math.floor(lo), Math.ceil(hi)];
 }
 
+/** Stable key for a listing query (filter values sorted). */
+function sigOf(q: Q): string {
+  const f = Object.keys(q.filters)
+    .sort()
+    .filter((k) => q.filters[k].length)
+    .map((k) => `${k}=${[...q.filters[k]].sort().join(',')}`);
+  return `${q.sort}|${q.dir}|${q.price ? q.price.join('-') : ''}|${f.join('&')}`;
+}
+
 function PriceRange({ bounds, value, onCommit }: { bounds: [number, number]; value: [number, number] | null; onCommit: (v: [number, number] | null) => void }) {
   const [v, setV] = useState<[number, number]>(value ?? bounds);
   useEffect(() => setV(value ?? bounds), [value, bounds]);
   const [lo, hi] = bounds;
   const span = Math.max(1, hi - lo);
-  const commit = (n: [number, number]) => onCommit(n[0] <= lo && n[1] >= hi ? null : n);
+  const commit = (n: [number, number]) => {
+    clearTimeout(keyT.current);
+    onCommit(n[0] <= lo && n[1] >= hi ? null : n);
+  };
+  // arrow keys: one request after the visitor stops pressing, not one per step
+  const keyT = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const commitSoon = (n: [number, number]) => {
+    clearTimeout(keyT.current);
+    keyT.current = setTimeout(() => onCommit(n[0] <= lo && n[1] >= hi ? null : n), 450);
+  };
+  useEffect(() => () => clearTimeout(keyT.current), []);
   return (
     <div className="ts-range">
       <div className="ts-range__track">
@@ -81,7 +100,7 @@ function PriceRange({ bounds, value, onCommit }: { bounds: [number, number]; val
           aria-label="Minimum price"
           onChange={(e) => setV([Math.min(Number(e.target.value), v[1] - 1), v[1]])}
           onPointerUp={() => commit(v)}
-          onKeyUp={() => commit(v)}
+          onKeyUp={() => commitSoon(v)}
         />
         <input
           type="range"
@@ -92,7 +111,7 @@ function PriceRange({ bounds, value, onCommit }: { bounds: [number, number]; val
           aria-label="Maximum price"
           onChange={(e) => setV([v[0], Math.max(Number(e.target.value), v[0] + 1)])}
           onPointerUp={() => commit(v)}
-          onKeyUp={() => commit(v)}
+          onKeyUp={() => commitSoon(v)}
         />
       </div>
       <div className="ts-range__vals">
@@ -124,7 +143,7 @@ export function Listing({
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const base = useRef(initial);
   const bounds = useMemo(() => priceBounds(initial.items), [initial]);
-  const first = useRef(true);
+  const shown = useRef('');
   const reqId = useRef(0);
   Object.assign(COLOR_HEX, swatches);
 
@@ -132,7 +151,8 @@ export function Listing({
     base.current = initial;
     setRes(initial);
     const fromUrl = readUrl(defaultSort);
-    first.current = !(Object.keys(fromUrl.filters).length || fromUrl.price || fromUrl.sort !== defaultSort || fromUrl.dir !== (defaultSort === 'relevance' ? 'DESC' : 'ASC'));
+    // the server-rendered first page is the default query: only a different query needs a fetch
+    shown.current = sigOf({ filters: {}, price: null, sort: defaultSort, dir: defaultSort === 'relevance' ? 'DESC' : 'ASC' });
     setQ(fromUrl);
     // groups start closed (like the classic store) unless something in them is picked
     const o: Record<string, boolean> = {};
@@ -141,10 +161,9 @@ export function Listing({
   }, [initial, defaultSort]);
 
   useEffect(() => {
-    if (first.current) {
-      first.current = false;
-      return;
-    }
+    const sig = sigOf(q);
+    if (sig === shown.current) return;
+    shown.current = sig;
     writeUrl(q, defaultSort);
     const sp = new URLSearchParams();
     if (categoryUid) sp.set('cat', categoryUid);

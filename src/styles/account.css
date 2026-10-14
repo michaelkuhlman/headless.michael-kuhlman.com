@@ -111,3 +111,10 @@
 .ts-login .ts-entry-lede { margin: 0 0 19px; }
 .ts-login .ts-check { min-height: 28px; align-items: center; font-size: 15px; margin-bottom: 10px; }
 .ts-acct__form .ts-check { margin-top: 10px; }
+
+/* Client-loaded pages: keep the footer below the fold while the content loads, so swapping the
+   skeleton for the real content does not shove it around (CLS). */
+.ts-results__skeleton { min-height: 100vh; align-content: start; }
+.ts-results, .ts-saved { min-height: 75vh; }
+.ts-cart, .ts-cart-empty { min-height: 75vh; align-content: start; }
+.ts-co[aria-busy='true'] { min-height: 100vh; }

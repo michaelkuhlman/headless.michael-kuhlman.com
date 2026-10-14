@@ -290,9 +290,14 @@ export function CheckoutView({ regions }: { regions: Region[] }) {
                           autoComplete="email"
                           value={email}
                           aria-invalid={!!err.email}
+                          aria-describedby={err.email ? 'co-email-err' : undefined}
                           onChange={(e) => setEmail(e.target.value)}
                         />
-                        {err.email && <p className="ts-field-error">{err.email}</p>}
+                        {err.email && (
+                          <p className="ts-field-error" id="co-email-err">
+                            {err.email}
+                          </p>
+                        )}
                         <p className="ts-note">You can create an account after checkout.</p>
                       </div>
                     )}

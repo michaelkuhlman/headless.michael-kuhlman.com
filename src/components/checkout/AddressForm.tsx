@@ -143,6 +143,7 @@ export function AddressFields({ id, a, set, err, regions }: { id: string; a: Add
           type="text"
           value={a.street1}
           aria-invalid={!!err.street1}
+          aria-describedby={err.street1 ? `${id}-street1-err` : undefined}
           onChange={(e) => set({ ...a, street1: e.target.value })}
           autoComplete={`${ac} address-line1`}
         />
@@ -154,7 +155,11 @@ export function AddressFields({ id, a, set, err, regions }: { id: string; a: Add
           autoComplete={`${ac} address-line2`}
           style={{ marginTop: 10 }}
         />
-        {err.street1 && <p className="ts-field-error">{err.street1}</p>}
+        {err.street1 && (
+          <p className="ts-field-error" id={`${id}-street1-err`}>
+            {err.street1}
+          </p>
+        )}
       </div>
       <div className="ts-field is-required ts-field--half">
         <label htmlFor={`${id}-country`}>Country</label>
@@ -164,7 +169,7 @@ export function AddressFields({ id, a, set, err, regions }: { id: string; a: Add
       </div>
       <div className="ts-field is-required ts-field--half">
         <label htmlFor={`${id}-region_id`}>State/Province</label>
-        <select id={`${id}-region_id`} value={a.region_id} aria-invalid={!!err.region_id} onChange={(e) => set({ ...a, region_id: e.target.value })} autoComplete={`${ac} address-level1`}>
+        <select id={`${id}-region_id`} value={a.region_id} aria-invalid={!!err.region_id} aria-describedby={err.region_id ? `${id}-region_id-err` : undefined} onChange={(e) => set({ ...a, region_id: e.target.value })} autoComplete={`${ac} address-level1`}>
           <option value="">Please select a region, state or province.</option>
           {regions.map((r) => (
             <option key={r.id} value={r.id}>
@@ -172,7 +177,11 @@ export function AddressFields({ id, a, set, err, regions }: { id: string; a: Add
             </option>
           ))}
         </select>
-        {err.region_id && <p className="ts-field-error">{err.region_id}</p>}
+        {err.region_id && (
+          <p className="ts-field-error" id={`${id}-region_id-err`}>
+            {err.region_id}
+          </p>
+        )}
       </div>
       <F id={id} label="City" k="city" a={a} set={set} err={err} half autoComplete={`${ac} address-level2`} />
       <F id={id} label="ZIP / postal code" k="postcode" a={a} set={set} err={err} half inputMode="numeric" autoComplete={`${ac} postal-code`} />

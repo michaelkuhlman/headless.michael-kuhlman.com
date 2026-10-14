@@ -204,7 +204,7 @@ export interface OrderFull extends OrderRow {
   payment_methods: { name: string }[];
   shipping_address: Addr | null;
   billing_address: Addr | null;
-  items: { product_name: string; product_sku: string; product_url_key: string | null; quantity_ordered: number; product_sale_price: { value: number }; selected_options: { label: string; value: string }[] }[];
+  items: { product_name: string; product_sku: string; product_url_key: string | null; quantity_ordered: number; product_sale_price: { value: number }; selected_options: { label: string; value: string }[]; bundle_options?: { label: string; values: { product_name: string; quantity: number }[] }[] }[];
   total: {
     subtotal: { value: number };
     total_shipping: { value: number };
@@ -216,7 +216,7 @@ export interface OrderFull extends OrderRow {
 
 export const ORDER_FIELDS = `number order_date status shipping_method payment_methods { name }
   shipping_address { ${ADDR} } billing_address { ${ADDR} }
-  items { product_name product_sku product_url_key quantity_ordered product_sale_price { value } selected_options { label value } }
+  items { product_name product_sku product_url_key quantity_ordered product_sale_price { value } selected_options { label value } ... on BundleOrderItem { bundle_options { label values { product_name quantity } } } }
   total { subtotal { value } total_shipping { value } total_tax { value } discounts { label amount { value } } grand_total { value } }`;
 
 export function OrderDetail({ o, guest = false }: { o: OrderFull; guest?: boolean }) {
@@ -244,6 +244,11 @@ export function OrderDetail({ o, guest = false }: { o: OrderFull; guest?: boolea
                 {it.selected_options.map((s) => (
                   <small key={s.label} className="ts-order__opt">
                     {s.label}: {s.value}
+                  </small>
+                ))}
+                {it.bundle_options?.map((b) => (
+                  <small key={b.label} className="ts-order__opt">
+                    {b.label}: {b.values.map((v) => `${v.quantity > 1 ? `${v.quantity} x ` : ''}${v.product_name}`).join(', ')}
                   </small>
                 ))}
               </td>

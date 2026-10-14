@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { openerFocus, trapTab } from '@/lib/client/focus';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
@@ -174,7 +175,7 @@ export function BagDrawer() {
 
   useEffect(() => {
     if (open) {
-      prevFocus.current = document.activeElement as HTMLElement;
+      prevFocus.current = openerFocus();
       setShown(true);
       document.documentElement.classList.add('ts-locked');
       requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
@@ -197,19 +198,7 @@ export function BagDrawer() {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') closeDrawer();
-      if (e.key === 'Tab' && panel.current) {
-        const f = panel.current.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])');
-        if (!f.length) return;
-        const first = f[0];
-        const last = f[f.length - 1];
-        if (e.shiftKey && (document.activeElement === first || document.activeElement === panel.current)) {
-          e.preventDefault();
-          last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
+      trapTab(e, panel.current);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

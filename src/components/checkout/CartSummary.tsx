@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Icon } from '../Icon';
 import { ShipMeter } from '../BagDrawer';
 import { applyCoupon, removeCoupon, type Cart } from '@/lib/client/cart';
@@ -139,7 +139,8 @@ function Estimate({ cart, regions, onPick }: { cart: Cart; regions: Region[]; on
     return { country_code: 'US', postcode: zip || undefined, region: r ? { region_id: r.id, region_code: r.code, region: r.name } : undefined };
   };
 
-  const load = async () => {
+  // keepPick: a cart change re-quotes the rates (free shipping can appear or vanish) and the chosen method's total
+  const load = async (keepPick = false) => {
     setBusy(true);
     setErr(null);
     try {
@@ -149,13 +150,28 @@ function Estimate({ cart, regions, onPick }: { cart: Cart; regions: Region[]; on
       );
       const list = d.estimateShippingMethods.filter((r) => r.available);
       setRates(list);
-      setPick(null);
-      onPick(null);
+      const again = keepPick ? list.find((r) => `${r.carrier_code}_${r.method_code}` === pick) : undefined;
+      if (again) void choose(again);
+      else {
+        setPick(null);
+        onPick(null);
+      }
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Could not estimate shipping.');
+      setPick(null);
+      onPick(null);
     }
     setBusy(false);
   };
+
+  const sig = `${cart.prices.grand_total.value}|${cart.items.map((i) => `${i.uid}:${i.quantity}`).join(',')}`;
+  const lastSig = useRef(sig);
+  useEffect(() => {
+    if (sig === lastSig.current) return;
+    lastSig.current = sig;
+    if (rates) void load(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sig]);
 
   const choose = async (r: Rate) => {
     const id = `${r.carrier_code}_${r.method_code}`;
@@ -200,7 +216,7 @@ function Estimate({ cart, regions, onPick }: { cart: Cart; regions: Region[]; on
             <label htmlFor="ts-est-zip">ZIP / postal code</label>
             <input id="ts-est-zip" type="text" inputMode="numeric" autoComplete="postal-code" value={zip} onChange={(e) => setZip(e.target.value)} />
           </div>
-          <button type="button" className="ts-button ts-button--ghost ts-button--sm" onClick={load} disabled={busy}>
+          <button type="button" className="ts-button ts-button--ghost ts-button--sm" onClick={() => load()} disabled={busy}>
             {busy ? 'Checking' : 'Get rates'}
           </button>
           {err && <p className="ts-field-error">{err}</p>}
