@@ -6,7 +6,7 @@ import { RecentStrip } from '@/components/product/RecentStrip';
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getCmsPage('home');
   return {
-    title: { absolute: page?.meta_title || 'Third Shot Supply Co. | Gear for the patient player' },
+    title: { absolute: page?.meta_title ? `${page.meta_title} | Third Shot Supply Co.` : 'Third Shot Supply Co. | Gear for the patient player' },
     description: page?.meta_description || undefined,
     alternates: { canonical: '/' },
   };

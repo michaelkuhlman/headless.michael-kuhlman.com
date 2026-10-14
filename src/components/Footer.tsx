@@ -66,7 +66,8 @@ export function Footer() {
             <h4>About this demo</h4>
             <p>
               A portfolio build by <a href="https://www.michael-kuhlman.com/">Michael Kuhlman</a>, Magento 2 / Adobe Commerce developer. A headless Next.js
-              storefront reading the same Mage-OS 2.4 catalogue over GraphQL as the <a href={CLASSIC_URL + '/'}>classic Luma store</a>.
+              storefront reading the same Mage-OS 3.5 (Magento Open Source 2.4.9) catalogue over GraphQL as the <a href={CLASSIC_URL + '/'}>classic Luma store</a>{' '}
+              (<a href="https://www.michael-kuhlman.com/work/magento-demo-store">how both were built</a>).
             </p>
           </div>
         </div>
