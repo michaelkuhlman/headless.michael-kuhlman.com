@@ -10,6 +10,8 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   // hl-deploy builds into .next-build and swaps it in, so a build never rewrites the folder the live server reads
   distDir: process.env.NEXT_DIST_DIR || '.next',
+  // nginx compresses (brotli, gzip fallback): Node's built-in compression is gzip-only and blocks brotli
+  compress: false,
   poweredByHeader: false,
   reactStrictMode: true,
   // Cache Components + Partial Prefetching = static shells for every catalogue page and instant client navigations.
