@@ -37,6 +37,7 @@ why: every change is a commit, and every commit is on GitHub within seconds.
   the work tree, so nothing under `/var/www` can serve repository internals. Plain `git` here says "not a git
   repository": expected, never `git init`. Push/pull use the repo-only deploy key `~/.ssh/id_hl_github` via the ssh
   alias `github.com-hl` (`ssh -T git@github.com-hl` answers "Hi michaelkuhlman/headless.michael-kuhlman.com!").
+  `gh` (logged in as michaelkuhlman) has admin on this repo: `gh issue ...`, `gh api repos/michaelkuhlman/headless.michael-kuhlman.com/...`.
 - **The work tree IS the live site's source**, and `hl-deploy` builds it as it is, uncommitted edits included.
   Nothing is live until it is deployed, and nothing is done until it is committed.
 - **Every change, in order:**
