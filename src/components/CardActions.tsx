@@ -8,7 +8,7 @@ import { openQuickView, showToast } from '@/lib/client/ui';
 import { mediaSrc } from '@/lib/format';
 import type { ProductCard } from '@/lib/magento/types';
 
-export function SaveButton({ urlKey, name, className = 'ts-card__save' }: { urlKey: string; name: string; className?: string }) {
+export function SaveButton({ urlKey, name, className = 'ts-card__save', label = false }: { urlKey: string; name: string; className?: string; label?: boolean }) {
   const list = saved.use();
   const on = list.includes(urlKey);
   const [pop, setPop] = useState(0);
@@ -26,6 +26,7 @@ export function SaveButton({ urlKey, name, className = 'ts-card__save' }: { urlK
       }}
     >
       <Icon name={on ? 'heartFill' : 'heart'} />
+      {label && <span>{on ? 'Saved' : 'Save for later'}</span>}
     </button>
   );
 }

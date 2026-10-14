@@ -7,7 +7,7 @@ import { magento } from '@/lib/magento/client';
  * Magento's `route` resolver first (cached in memory per process; known paths cost a Map lookup).
  */
 
-const APP_PREFIXES = ['checkout', 'customer', 'catalogsearch', 'saved', 'contact', 'sales', 'search', 'page-not-found'];
+const APP_PREFIXES = ['checkout', 'customer', 'catalogsearch', 'saved', 'contact', 'sales', 'search', 'newsletter', 'page-not-found'];
 const TTL_OK = 10 * 60_000;
 const TTL_MISS = 60_000;
 const seen = new Map<string, { ok: boolean; at: number }>();

@@ -12,19 +12,25 @@ import { FREE_SHIP } from '@/lib/site';
 import type { ProductCard } from '@/lib/magento/types';
 
 export function ShipMeter({ subtotal }: { subtotal: number }) {
-  const left = FREE_SHIP - subtotal;
+  const left = Math.max(0, FREE_SHIP - subtotal);
   const pct = Math.min(100, (subtotal / FREE_SHIP) * 100);
   return (
     <div className={`ts-meter${left <= 0 ? ' is-free' : ''}`}>
-      {left <= 0 ? (
-        <>You have free shipping.</>
-      ) : (
-        <>
-          You are <strong>{money(left)}</strong> away from free shipping.
-        </>
-      )}
-      <div className="ts-meter__bar" aria-hidden="true">
-        <span style={{ width: `${pct}%` }} />
+      <p className="ts-meter__msg">
+        {left <= 0 ? (
+          <strong>You’ve unlocked free shipping.</strong>
+        ) : subtotal <= 0 ? (
+          <>
+            Free shipping on orders over <strong>{money(FREE_SHIP)}</strong>
+          </>
+        ) : (
+          <>
+            You’re <strong>{money(left)}</strong> away from free shipping
+          </>
+        )}
+      </p>
+      <div className="ts-meter__bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(pct)} aria-label="Progress to free shipping">
+        <span style={{ width: `${pct.toFixed(1)}%` }} />
       </div>
     </div>
   );

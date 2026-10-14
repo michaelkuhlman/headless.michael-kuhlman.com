@@ -369,7 +369,7 @@ export function BuyBox({
           {err}
         </p>
       )}
-      <SaveButton urlKey={p.url_key} name={p.name} className="ts-buy__save" />
+      <SaveButton urlKey={p.url_key} name={p.name} className="ts-buy__save" label />
       {compact ? (
         <p style={{ marginTop: 6 }}>
           <Link className="ts-textlink" href={`/${p.url_key}.html`}>

@@ -39,10 +39,10 @@ export function Stars({ pct, label }: { pct: number; label?: string }) {
   );
 }
 
-export function ProductCard({ p, priority = false, sizes = CARD_SIZES }: { p: Card; priority?: boolean; sizes?: string }) {
+export function ProductCard({ p, priority = false, sizes = CARD_SIZES, noQuickAdd = false }: { p: Card; priority?: boolean; sizes?: string; noQuickAdd?: boolean }) {
   const href = `/${p.url_key}.html`;
   const src = mediaSrc(p.small_image?.url);
-  const swatchOpt = p.configurable_options?.find((o) => o.values.some((v) => v.swatch_data));
+  const swatchOpt = p.configurable_options?.find((o) => o.values.some((v) => v.swatch_data?.__typename === 'ColorSwatchData'));
   const oos = p.stock_status === 'OUT_OF_STOCK';
   return (
     <div className="ts-card">
@@ -51,7 +51,7 @@ export function ProductCard({ p, priority = false, sizes = CARD_SIZES }: { p: Ca
           {src ? <Image src={src} alt="" fill sizes={sizes} priority={priority} quality={75} /> : <span className="ts-card__ph">No photo</span>}
         </Link>
         <CardTools urlKey={p.url_key} name={p.name} />
-        {!oos && <CardAdd p={p} />}
+        {!oos && !noQuickAdd && <CardAdd p={p} />}
       </div>
       <h3 className="ts-card__name">
         <Link href={href} prefetch>{p.name}</Link>

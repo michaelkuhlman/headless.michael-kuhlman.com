@@ -5,6 +5,11 @@
 .ts-demo-notice__badge { flex: none; background: var(--ts-optic); color: var(--ts-ink); font-weight: 700; font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; border-radius: 999px; padding: 4px 9px 3px; }
 .ts-demo-notice a { color: var(--ts-optic); text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
 .ts-demo-notice a:hover { color: #e6fa70; }
+.ts-demo-notice__short { display: none; }
+@media (max-width: 479px) {
+  .ts-demo-notice__long { display: none; }
+  .ts-demo-notice__short { display: inline; }
+}
 @media (max-width: 767px) {
   .ts-demo-notice { font-size: 11.5px; }
   .ts-demo-notice__inner { padding: 7px var(--ts-gutter); gap: 10px; }

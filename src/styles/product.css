@@ -30,11 +30,11 @@
 
 /* buy box */
 .ts-buy h1 { font-size: clamp(30px, 1.5vw + 20px, 46px); line-height: 1.06; margin: 0 0 12px; font-weight: 450; }
-.ts-buy__reviews { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 16px; margin: 0 0 18px; font-size: 13px; line-height: 1.3; }
+.ts-buy__reviews { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 16px; margin: 0 0 18px; min-height: 24px; font-size: 13px; line-height: 1.3; }
 .ts-buy__reviews a { color: var(--ts-muted); }
 .ts-buy__reviews a:hover { color: var(--ts-kitchen); }
 .ts-buy__reviews .ts-buy__add { color: var(--ts-kitchen); text-decoration: underline; text-underline-offset: 3px; }
-.ts-buy__price { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin: 0 0 6px; }
+.ts-buy__price { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin: 0 0 6px; min-height: 38px; }
 .ts-buy__price--noprice { justify-content: flex-start; }
 .ts-buy__amount { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; line-height: 1.15; }
 .ts-buy__amount .ts-price { font: 600 28px/1.15 var(--ts-sans); color: var(--ts-ink); letter-spacing: -0.01em; }
@@ -143,6 +143,8 @@
 .ts-tabs__panel li::marker { color: var(--ts-court); }
 .ts-desc { max-width: 740px; }
 .ts-desc > :first-child { margin-top: 0; }
+.ts-desc p { margin: 0 0 12px; }
+.ts-desc p, .ts-desc li { font-size: 16px; line-height: 1.7; }
 .ts-attrs { width: 100%; max-width: 740px; border-collapse: collapse; }
 .ts-attrs th, .ts-attrs td { padding: 14px 12px 14px 0; border-bottom: 1px solid var(--ts-line); font-size: 14.5px; text-align: left; vertical-align: top; }
 .ts-attrs th { font-weight: 600; color: var(--ts-ink); width: 36%; }
@@ -214,7 +216,7 @@
   .ts-sticky-atc__name { font: 600 13.5px/1.25 var(--ts-sans); color: var(--ts-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ts-sticky-atc__price { font: 500 13.5px/1.2 var(--ts-sans); color: var(--ts-muted); }
   .ts-sticky-atc .ts-button { flex: none; max-width: 60%; padding: 0 24px; font-size: 15px; white-space: nowrap; }
-  body:has(.ts-sticky-atc) .ts-copyright { padding-bottom: 96px; }
+  body:has(.ts-sticky-atc:not([style*="display: none"], [style*="display: none"] .ts-sticky-atc)) .ts-copyright { padding-bottom: 96px; }
 }
 
 /* tab visibility: desktop/tablet follow the active tab, phones follow each accordion row */

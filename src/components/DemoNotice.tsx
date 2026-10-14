@@ -7,8 +7,12 @@ export function DemoNotice() {
       <div className="ts-demo-notice__inner">
         <span className="ts-demo-notice__badge">Headless demo</span>
         <span>
-          No real orders, payments or shipping.<span className="ts-demo-notice__more"> Next.js storefront on Magento GraphQL by Michael Kuhlman.</span>{' '}
-          <a href={CLASSIC_URL + '/'}>Compare the classic store</a>
+          No real orders<span className="ts-demo-notice__long">, payments or shipping</span>.
+          <span className="ts-demo-notice__more"> Next.js storefront on Magento GraphQL by Michael Kuhlman.</span>{' '}
+          <a href={CLASSIC_URL + '/'}>
+            <span className="ts-demo-notice__long">Compare the classic store</span>
+            <span className="ts-demo-notice__short">Classic store</span>
+          </a>
         </span>
       </div>
     </div>

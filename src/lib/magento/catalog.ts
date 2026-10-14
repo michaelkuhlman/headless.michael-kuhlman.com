@@ -98,6 +98,11 @@ export async function listProducts(args: ListArgs): Promise<ProductListResult> {
       size: args.pageSize ?? 60,
     },
   );
+  // Mage-OS GraphQL ignores the direction of a `position` sort and returns the category in reverse admin order
+  // (the classic storefront shows it top-down). Listings fit on one page, so flip it here to match m2 exactly.
+  if (sortKey === 'position' && dir === 'ASC' && d.products.total_count <= (args.pageSize ?? 60)) {
+    return { ...d.products, items: [...d.products.items].reverse() };
+  }
   return d.products;
 }
 
@@ -109,7 +114,8 @@ export async function getProduct(urlKey: string): Promise<Product | null> {
     `query P($k: String) { products(filter: { url_key: { eq: $k } }) { items { ${PRODUCT_FIELDS} } } }`,
     { k: urlKey },
   );
-  return d.products.items[0] ?? null;
+  // an url_key eq filter also returns bundles/groups that contain the product: take the exact match only
+  return d.products.items.find((p) => p.url_key === urlKey) ?? null;
 }
 
 export async function getProductsByUrlKeys(keys: string[]): Promise<ProductCard[]> {
@@ -222,4 +228,22 @@ export async function getCmsBlocks(ids: string[]): Promise<Record<string, CmsBlo
 
 export function sortAggregations(aggs: Aggregation[]): Aggregation[] {
   return aggs.filter((a) => a.attribute_code !== 'category_uid' && a.options.length > 0);
+}
+
+export interface Region {
+  id: number;
+  code: string;
+  name: string;
+}
+
+/** States for the address forms (the store ships to the US only). */
+export async function getRegions(country = 'US'): Promise<Region[]> {
+  'use cache';
+  cacheLife('days');
+  cacheTag('config');
+  const d = await magento<{ country: { available_regions: Region[] | null } | null }>(
+    `query C($id: String) { country(id: $id) { available_regions { id code name } } }`,
+    { id: country },
+  );
+  return (d.country?.available_regions ?? []).sort((a, b) => a.name.localeCompare(b.name));
 }

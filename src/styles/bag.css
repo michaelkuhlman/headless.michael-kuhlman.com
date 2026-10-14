@@ -133,7 +133,7 @@ a.ts-bag-line__link:hover { color: var(--ts-ink); }
 }
 .ts-top:hover { background: var(--ts-kitchen); }
 .ts-top.is-on { opacity: 1; transform: none; pointer-events: auto; }
-body:has(.ts-sticky-atc.is-visible) .ts-top { bottom: 96px; }
+body:has(.ts-sticky-atc.is-visible:not([style*="display: none"], [style*="display: none"] .ts-sticky-atc.is-visible)) .ts-top { bottom: 96px; }
 
 /* saved page */
 .ts-saved { padding: 40px 0 20px; }
