@@ -42,7 +42,8 @@
 .ts-pill { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: rgba(46, 94, 74, 0.1); color: var(--ts-kitchen); }
 
 @media (max-width: 1023px) {
-  .ts-acct { grid-template-columns: 1fr; gap: 24px; }
+  .ts-acct { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .ts-acct > nav { min-width: 0; }
   .ts-acct__nav { position: static; display: flex; overflow-x: auto; padding: 6px; border-radius: 999px; scrollbar-width: none; }
   .ts-acct__nav li { flex: none; }
   .ts-acct__nav a, .ts-acct__nav button { padding: 10px 16px; border-left: 0; border-radius: 999px; white-space: nowrap; }

@@ -16,6 +16,8 @@ const NAV: [string, string][] = [
   ['Newsletter Subscriptions', '/newsletter/manage/'],
 ];
 
+const norm = (p: string) => p.replace(/\/+$/, '');
+
 export function AccountShell({ title, children }: { title: string; children: React.ReactNode }) {
   const auth = useAuth();
   const router = useRouter();
@@ -40,7 +42,7 @@ export function AccountShell({ title, children }: { title: string; children: Rea
         <ul className="ts-acct__nav">
           {NAV.map(([label, href]) => (
             <li key={href}>
-              <Link href={href} aria-current={path === href || (href === '/sales/order/history/' && path.startsWith('/sales/order/')) ? 'page' : undefined}>
+              <Link href={href} aria-current={norm(path) === norm(href) || (href === '/sales/order/history/' && path.startsWith('/sales/order/')) ? 'page' : undefined}>
                 {label}
               </Link>
             </li>
