@@ -82,6 +82,12 @@ case "$mode" in
     NEXT_DIST_DIR=$next npx next build
     [[ -f "$next/BUILD_ID" ]] || die "build produced no $next/BUILD_ID, live site untouched" ;;
 esac
+# nginx serves /_next/static straight from both slots (brotli_static / gzip_static): precompress once at max level
+if command -v brotli >/dev/null && [[ -d "$next/static" ]]; then
+  find "$next/static" -type f \( -name '*.js' -o -name '*.css' -o -name '*.svg' -o -name '*.json' -o -name '*.txt' \) -size +1k -print0 \
+    | xargs -0 -r -P 4 -n 20 sh -c 'for f; do [ -f "$f.br" ] || brotli -q 11 -k -f "$f"; [ -f "$f.gz" ] || gzip -9 -k -f "$f"; done' _
+  say "static assets precompressed (br + gz)"
+fi
 echo "$next" > .next-active
 # clean env: sessions spawned under pm2 inherit pm2_env vars (max_memory_restart=500M, nexus secrets) that the
 # pm2 CLI would copy into the app
