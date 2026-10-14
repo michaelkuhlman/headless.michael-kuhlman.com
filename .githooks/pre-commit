@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# headless.michael-kuhlman.com pre-commit guard: blocks token-shaped secrets, real values from /etc/headless.env,
+# credential/database files and backup leftovers in the STAGED files. Never bypass with --no-verify.
+set -u
+export LC_ALL=C
+fail=0
+err() { printf 'pre-commit: %s\n' "$*" >&2; fail=1; }
+secret_re='sk-ant-[A-Za-z0-9_-]{20,}|gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|[sr]k_live_[A-Za-z0-9]{16,}|xox[baprs]-[A-Za-z0-9-]{16,}|[0-9]{8,10}:AA[A-Za-z0-9_-]{33}|AIza[0-9A-Za-z_-]{35}|cfat_[A-Za-z0-9_-]{20,}'
+vals=$(mktemp) || exit 1
+trap 'rm -f "$vals"' EXIT
+chmod 600 "$vals"
+[ -r /etc/headless.env ] && sed -nE 's/^[[:space:]]*[A-Za-z0-9_]*(PASS|SECRET|TOKEN|KEY)[A-Za-z0-9_]*[[:space:]]*=[[:space:]]*//p' /etc/headless.env \
+  | sed -E "s/^[\"']//; s/[\"'][[:space:]]*\$//" | awk 'length($0) >= 12' > "$vals"
+while IFS= read -r -d '' p; do
+  case "$p" in
+    *.example) ;;
+    .env|*/.env|.env.*|*.pem|*.key|*.sqlite|*.db|*.sql|*.sql.gz) err "$p: credential or database file." ;;
+  esac
+  case "$p" in *.bak|*.old|*.orig|*.production|*.swp|*.tmp|*~) err "$p: backup leftover; git history is the backup." ;; esac
+  lines=$(git show ":$p" 2>/dev/null | grep -I -n -o -E "$secret_re" | cut -d: -f1 | sort -un | paste -sd, -)
+  [ -n "$lines" ] && err "$p: token-shaped secret on line(s) $lines."
+  if [ -s "$vals" ]; then
+    lines=$(git show ":$p" 2>/dev/null | grep -I -n -F -f "$vals" | cut -d: -f1 | sort -un | paste -sd, -)
+    [ -n "$lines" ] && err "$p: contains a real secret from /etc/headless.env (line(s) $lines)."
+  fi
+done < <(git diff --cached --name-only --diff-filter=ACMR -z)
+exit $fail

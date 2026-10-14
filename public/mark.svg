@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80"><path d="M36.00 66.00 L36.00 42.00" stroke="#173A2E" stroke-width="4.20" stroke-linecap="round"/>
+  <path d="M8.00 66.00 L72.00 66.00" stroke="#173A2E" stroke-width="2.40" stroke-linecap="round" opacity="0.55"/>
+  <path d="M9.00 58.00 Q30.00 2.00 52.00 44.00" fill="none" stroke="#173A2E" stroke-width="3.60" stroke-linecap="round" stroke-dasharray="0.10 7.20"/>
+  <circle cx="60.00" cy="52.00" r="12.50" fill="#D9F24F"/>
+  <circle cx="66.33" cy="54.68" r="1.38" fill="#173A2E" fill-opacity="0.35"/>
+  <circle cx="61.85" cy="58.62" r="1.38" fill="#173A2E" fill-opacity="0.35"/>
+  <circle cx="55.98" cy="57.58" r="1.38" fill="#173A2E" fill-opacity="0.35"/>
+  <circle cx="53.13" cy="52.34" r="1.38" fill="#173A2E" fill-opacity="0.35"/>
+  <circle cx="55.46" cy="46.84" r="1.38" fill="#173A2E" fill-opacity="0.35"/>
+  <circle cx="61.20" cy="45.23" r="1.38" fill="#173A2E" fill-opacity="0.35"/>
+  <circle cx="66.04" cy="48.72" r="1.38" fill="#173A2E" fill-opacity="0.35"/>
+  <circle cx="60.00" cy="52.00" r="1.38" fill="#173A2E" fill-opacity="0.35"/></svg>

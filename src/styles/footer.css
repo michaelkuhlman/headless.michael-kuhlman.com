@@ -1,0 +1,67 @@
+/* Footer: newsletter band, link columns, legal line. Markup comes from the Magento CMS block ts-footer-columns. */
+
+.ts-page-footer { background: var(--ts-kitchen); color: rgba(244, 240, 230, 0.78); margin-top: var(--ts-section); }
+.ts-page-footer a, .ts-page-footer a:visited { color: var(--ts-chalk); text-decoration: none; }
+.ts-page-footer a:hover { color: var(--ts-optic); text-decoration: none; }
+.ts-page-footer a:focus-visible { outline-color: var(--ts-optic); }
+
+.ts-footer__news {
+  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 56px; align-items: center;
+  padding: 72px 0 64px; border-bottom: 1px solid rgba(244, 240, 230, 0.14);
+}
+.ts-footer__news .ts-eyebrow { color: var(--ts-optic); }
+.ts-footer__news h2 { color: var(--ts-chalk); font-size: clamp(27px, 1.4vw + 18px, 40px); font-weight: 400; line-height: 1.14; margin: 0; max-width: 580px; }
+.ts-newsletter { width: 100%; max-width: 520px; margin: 0 0 0 auto; }
+.ts-newsletter form { display: flex; gap: 10px; width: 100%; }
+.ts-newsletter input {
+  margin: 0; flex: 1; min-width: 0; height: var(--ts-btn-h); min-height: var(--ts-btn-h); border-radius: 999px;
+  border: 1px solid rgba(244, 240, 230, 0.32); background: rgba(255, 255, 255, 0.06); color: var(--ts-chalk); padding: 0 22px; font-size: 15px;
+}
+.ts-newsletter input::placeholder { color: rgba(244, 240, 230, 0.62); }
+.ts-newsletter input:hover { border-color: rgba(244, 240, 230, 0.5); }
+.ts-newsletter input:focus { border-color: var(--ts-optic); box-shadow: 0 0 0 3px rgba(217, 242, 79, 0.2); }
+.ts-newsletter button {
+  height: var(--ts-btn-h); min-height: var(--ts-btn-h); border-radius: 999px; background: var(--ts-optic); border: 0; color: var(--ts-ink);
+  font-weight: 700; padding: 0 28px; margin: 0; flex: none; transition: background-color 0.2s, box-shadow 0.2s;
+}
+.ts-newsletter button:hover { background: #e6fa70; box-shadow: 0 10px 28px -10px rgba(217, 242, 79, 0.6); }
+.ts-newsletter__msg { font-size: 13px; line-height: 1.5; margin: 10px 0 0; color: var(--ts-optic); }
+.ts-newsletter__msg.is-error { color: #ffb8a0; }
+.ts-footer__fine { font-size: 12.5px; line-height: 1.5; color: rgba(244, 240, 230, 0.6); margin: 14px 0 0 auto; max-width: 520px; }
+
+.ts-footer__grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr 1.5fr; gap: 40px; padding: 60px 0 52px; }
+.ts-footer__brand img { width: 188px; max-width: none; height: auto; display: block; margin-bottom: 18px; }
+.ts-footer__brand p { font-size: 14px; line-height: 1.65; max-width: 300px; margin: 0; }
+.ts-footer__col h4 { font: 600 12px/1 var(--ts-sans); letter-spacing: 0.16em; text-transform: uppercase; color: var(--ts-optic); margin: 8px 0 18px; }
+.ts-footer__col ul { list-style: none; margin: 0; padding: 0; }
+.ts-footer__col li { margin: 0; font-size: 14.5px; }
+.ts-footer__col li a { display: inline-block; padding: 5px 0; white-space: nowrap; }
+.ts-footer__col p { font-size: 14px; line-height: 1.65; margin: 0; }
+.ts-footer__demo a { text-decoration: underline !important; text-underline-offset: 3px; }
+
+.ts-copyright {
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px 24px; text-align: left;
+  background: #10291f; color: rgba(244, 240, 230, 0.62); font-size: 12.5px;
+  padding: 20px max(var(--ts-gutter), calc((100% - var(--ts-container)) / 2 + var(--ts-gutter)));
+}
+
+@media (max-width: 1023px) {
+  .ts-footer__grid { grid-template-columns: 1fr 1fr 1fr; }
+  .ts-footer__brand, .ts-footer__demo { grid-column: 1 / -1; }
+  .ts-footer__demo p { max-width: 560px; }
+  .ts-footer__news { grid-template-columns: 1fr; gap: 28px; }
+  .ts-newsletter { margin: 0; max-width: 560px; }
+  .ts-footer__fine { margin-left: 0; }
+  .ts-footer__col li a { display: flex; align-items: center; min-height: 44px; padding: 0; white-space: normal; }
+  .ts-footer__col h4 { margin-bottom: 8px; }
+}
+@media (max-width: 767px) {
+  .ts-footer__news { grid-template-columns: 1fr; gap: 26px; padding: 48px 0 40px; }
+  .ts-newsletter { max-width: none; }
+  .ts-newsletter form { flex-direction: column; }
+  .ts-newsletter button { width: 100%; }
+  .ts-footer__fine { margin: 12px 0 0; }
+  .ts-footer__grid { grid-template-columns: 1fr 1fr; gap: 28px 20px; padding: 40px 0 36px; }
+  .ts-footer__demo { grid-column: auto; }
+  .ts-copyright { flex-direction: column; padding: 18px var(--ts-gutter); }
+}
