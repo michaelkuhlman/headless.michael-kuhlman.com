@@ -5,14 +5,15 @@ export async function GET(req: Request) {
   const q = (new URL(req.url).searchParams.get('q') ?? '').trim().slice(0, 80);
   if (q.length < 2) return Response.json({ q, total: 0, items: [], categories: [] });
   try {
-    const [res, cats] = await Promise.all([listProducts({ search: q.toLowerCase(), pageSize: 6 }), getCategories()]);
+    // 12 fetched, 6 shown: listProducts sinks sold-out matches within the page, so in-stock ones fill the dropdown
+    const [res, cats] = await Promise.all([listProducts({ search: q.toLowerCase(), pageSize: 12 }), getCategories()]);
     const ql = q.toLowerCase();
     const catIds = new Set(res.aggregations.find((a) => a.attribute_code === 'category_uid')?.options.map((o) => o.value) ?? []);
     const categories = cats
       .filter((c) => catIds.has(c.uid) || c.name.toLowerCase().includes(ql))
       .map((c) => ({ name: c.name, url_path: c.url_path }));
     return Response.json(
-      { q, total: res.total_count, items: res.items, categories },
+      { q, total: res.total_count, items: res.items.slice(0, 6), categories },
       { headers: { 'Cache-Control': 'public, max-age=120' } },
     );
   } catch {

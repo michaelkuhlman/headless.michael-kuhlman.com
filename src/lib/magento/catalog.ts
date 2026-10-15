@@ -98,10 +98,11 @@ export async function listProducts(args: ListArgs): Promise<ProductListResult> {
       size: args.pageSize ?? 60,
     },
   );
-  // Mage-OS GraphQL ignores the direction of a `position` sort and returns the category in reverse admin order
-  // (the classic storefront shows it top-down). Listings fit on one page, so flip it here to match m2 exactly.
-  if (sortKey === 'position' && dir === 'ASC' && d.products.total_count <= (args.pageSize ?? 60)) {
-    return { ...d.products, items: [...d.products.items].reverse() };
+  // The classic storefront lists out-of-stock matches after the in-stock ones on search results; GraphQL ranks by
+  // score alone (a sold-out youth paddle came first for "paddle"). Same order here, within the page.
+  if (sortKey === 'relevance') {
+    const items = d.products.items;
+    return { ...d.products, items: [...items.filter((p) => p.stock_status !== 'OUT_OF_STOCK'), ...items.filter((p) => p.stock_status === 'OUT_OF_STOCK')] };
   }
   return d.products;
 }
