@@ -21,7 +21,7 @@ const nextConfig: NextConfig = {
     // webp only: Cloudflare caches /_next/image at the edge and ignores Vary: Accept, so one format per URL
     formats: ['image/webp'],
     remotePatterns: [{ protocol: 'https', hostname: 'm2.michael-kuhlman.com', pathname: '/media/**' }],
-    deviceSizes: [390, 640, 828, 1080, 1280, 1600, 1920],
+    deviceSizes: [390, 640, 750, 828, 1080, 1280, 1600, 1920],
     imageSizes: [64, 96, 128, 160, 240, 320, 480],
     qualities: [70, 75, 80],
     minimumCacheTTL: 60 * 60 * 24 * 30,
