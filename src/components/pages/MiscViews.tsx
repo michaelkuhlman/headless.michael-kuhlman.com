@@ -188,7 +188,7 @@ export function ContactForm() {
           await gql(`mutation ($i: ContactUsInput!) { contactUs(input: $i) { status } }`, {
             i: { name: f.name.trim(), email: f.email.trim(), telephone: f.telephone.trim(), comment: f.comment.trim() },
           });
-          setDone({ ok: true, text: "Thanks for contacting us with your comments and questions. We'll respond to you very soon." });
+          setDone({ ok: true, text: 'Thanks! The form works, but this is a demo store, so no message was sent.' });
           setF({ name: '', email: '', telephone: '', comment: '' });
         } catch (x2) {
           setDone({ ok: false, text: x2 instanceof Error ? x2.message : 'We could not send your message. Please try again.' });
