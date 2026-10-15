@@ -94,7 +94,7 @@ a.ts-bag-line__link:hover { color: var(--ts-ink); }
 .ts-bag__pick-name:hover { text-decoration: underline; text-underline-offset: 3px; color: var(--ts-ink); }
 .ts-bag__pick-price { grid-area: price; align-self: start; display: flex; flex-wrap: wrap; gap: 0 6px; font-size: 13.5px; font-weight: 600; }
 .ts-bag__pick-price .ts-price { font-size: 13.5px; font-weight: 600; }
-.ts-bag__pick-price .ts-price--special { color: var(--ts-clay); }
+.ts-bag__pick-price .ts-price--special { color: var(--ts-clay-text); }
 .ts-bag__pick-price .ts-price--old { font-weight: 400; color: var(--ts-muted); text-decoration: line-through; }
 .ts-bag__pick-btn {
   grid-area: btn; display: inline-flex; align-items: center; justify-content: center; gap: 4px; height: var(--ts-btn-h-sm); padding: 0 14px 0 10px;

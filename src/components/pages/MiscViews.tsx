@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Icon } from '../Icon';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Breadcrumbs } from '../Breadcrumbs';
@@ -51,12 +52,33 @@ export function SearchView({ labels }: { labels: Record<string, string> }) {
           ))}
         </div>
       ) : res.total_count === 0 ? (
-        <div className="ts-results__none">
-          <p className="ts-alert">Your search returned no results.</p>
-          <p>
-            Try a shorter word, or browse <Link href="/paddles.html">paddles</Link>, <Link href="/balls.html">balls</Link> or{' '}
-            <Link href="/search/term/popular/">popular searches</Link>.
-          </p>
+        // same empty state as the classic store's search page (Magento_CatalogSearch result.phtml in the theme)
+        <div className="ts-cart-empty ts-results__none">
+          <span className="ts-bag__empty-icon" aria-hidden="true">
+            <Icon name="search" />
+          </span>
+          <h2>Nothing matched that search</h2>
+          <p>Check the spelling or try a broader word. These are what players search for most:</p>
+          <ul className="ts-bag__empty-links" aria-label="Popular searches">
+            {['carbon paddle', 'tour 40', 'grip', 'bag', 'visor'].map((t) => (
+              <li key={t}>
+                <Link href={`/catalogsearch/result/?q=${encodeURIComponent(t)}`}>{t}</Link>
+              </li>
+            ))}
+          </ul>
+          <p className="ts-results__more">Or browse a category:</p>
+          <ul className="ts-bag__empty-links" aria-label="Categories">
+            {[
+              ['Paddles', '/paddles.html'],
+              ['Balls', '/balls.html'],
+              ['Bags & Covers', '/bags-covers.html'],
+              ['Accessories', '/accessories.html'],
+            ].map(([l, h]) => (
+              <li key={h}>
+                <Link href={h}>{l}</Link>
+              </li>
+            ))}
+          </ul>
         </div>
       ) : (
         <Listing key={q} initial={res} search={q.toLowerCase()} swatches={swatchesOf(res)} labels={labels} />

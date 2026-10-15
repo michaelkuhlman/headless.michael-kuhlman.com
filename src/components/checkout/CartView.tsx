@@ -182,15 +182,18 @@ export function CartView({ regions }: { regions: Region[] }) {
     return (
       <>
         <h1 className="ts-cart-title">Your bag</h1>
+        {/* same empty state as the bag drawer and the classic store's bag page */}
         <div className="ts-cart-empty">
-          <h2>You have no items in your shopping cart.</h2>
-          <p>
-            Click{' '}
-            <Link href="/" className="ts-textlink">
-              here
-            </Link>{' '}
-            to continue shopping.
-          </p>
+          <span className="ts-bag__empty-icon" aria-hidden="true">
+            <Icon name="bag" />
+          </span>
+          <h2>Your bag is empty</h2>
+          <p>Start with a paddle, a sleeve of balls or something for the bag.</p>
+          <div className="ts-bag__empty-links">
+            <Link href="/paddles.html">Paddles</Link>
+            <Link href="/balls.html">Balls</Link>
+            <Link href="/bags-covers.html">Bags &amp; Covers</Link>
+          </div>
         </div>
         <RecentStrip />
       </>

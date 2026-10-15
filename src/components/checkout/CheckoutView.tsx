@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../Icon';
 import { DiscountBox } from './CartSummary';
 import { OrderSummary } from './OrderSummary';
+import { PLACED_ORDER_FIELDS, summarize, type PlacedOrder } from './placedOrder';
 import { AddressFields, AddressView, emptyAddr, fromCart, toCartInput, validateAddr, type Addr, type AddrErrors } from './AddressForm';
 import { useAuth } from '@/lib/client/auth';
 import { CART_FIELDS, clearCart, loadCart, setCart, useCart, type Cart, type ShippingMethod } from '@/lib/client/cart';
@@ -190,11 +191,11 @@ export function CheckoutView({ regions }: { regions: Region[] }) {
     setBusy(true);
     setFail(null);
     try {
-      const d = await gql<{ o: { orderV2: { number: string } | null; errors: { message: string }[] } }>(
+      const d = await gql<{ o: { orderV2: (PlacedOrder & { number: string }) | null; errors: { message: string }[] } }>(
         `mutation ($id: String!, $code: String!${billSame ? '' : ', $bill: CartAddressInput!'}) {
           ${billSame ? '' : 'b: setBillingAddressOnCart(input: { cart_id: $id, billing_address: { address: $bill } }) { cart { id } }'}
           p: setPaymentMethodOnCart(input: { cart_id: $id, payment_method: { code: $code } }) { cart { id } }
-          o: placeOrder(input: { cart_id: $id }) { orderV2 { number } errors { message code } }
+          o: placeOrder(input: { cart_id: $id }) { orderV2 { number ${PLACED_ORDER_FIELDS} } errors { message code } }
         }`,
         { id: cart.id, code: pay ?? 'checkmo', ...(billSame ? {} : { bill: toCartInput(bill) }) },
       );
@@ -202,7 +203,10 @@ export function CheckoutView({ regions }: { regions: Region[] }) {
       if (!num) throw new Error(d.o.errors?.[0]?.message ?? 'The order could not be placed.');
       placed.current = true;
       try {
-        sessionStorage.setItem('hl_last_order', JSON.stringify({ number: num, email: auth.loggedIn ? customer?.email : email.trim(), guest: !auth.loggedIn }));
+        sessionStorage.setItem(
+          'hl_last_order',
+          JSON.stringify({ number: num, email: auth.loggedIn ? customer?.email : email.trim(), guest: !auth.loggedIn, summary: d.o.orderV2 ? summarize(d.o.orderV2) : null }),
+        );
       } catch {}
       clearCart();
       if (auth.loggedIn) void loadCart(true);

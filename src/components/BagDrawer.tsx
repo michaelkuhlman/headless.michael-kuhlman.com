@@ -251,11 +251,11 @@ export function BagDrawer() {
                 <Icon name="bag" />
               </span>
               <p className="ts-bag__empty-title">Your bag is empty</p>
-              <p>Paddles, balls and court kit picked by players. Start with a bestseller.</p>
+              <p>Start with a paddle, a sleeve of balls or something for the bag.</p>
               <div className="ts-bag__empty-links">
                 <Link href="/paddles.html" onClick={closeDrawer}>Paddles</Link>
                 <Link href="/balls.html" onClick={closeDrawer}>Balls</Link>
-                <Link href="/accessories.html" onClick={closeDrawer}>Accessories</Link>
+                <Link href="/bags-covers.html" onClick={closeDrawer}>Bags &amp; Covers</Link>
               </div>
             </div>
           ) : (
