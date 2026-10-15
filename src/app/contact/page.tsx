@@ -5,7 +5,7 @@ import { ContactForm } from '@/components/pages/MiscViews';
 export const metadata: Metadata = {
   title: 'Contact us',
   description: 'Questions about a paddle, an order or a team discount? We answer every message within one business day.',
-  alternates: { canonical: '/contact/' },
+  alternates: { canonical: '/contact' },
 };
 export default function Page() {
   return (

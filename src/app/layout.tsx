@@ -18,7 +18,7 @@ import { Bootstrap } from '@/components/Bootstrap';
 import { BagDrawer } from '@/components/BagDrawer';
 import { QuickView } from '@/components/QuickView';
 import { Toast } from '@/components/Toast';
-import { SITE_URL } from '@/lib/site';
+import { CLASSIC_URL, SITE_URL } from '@/lib/site';
 
 const fraunces = localFont({
   src: '../styles/fraunces-latin.woff2',
@@ -40,7 +40,13 @@ export const metadata: Metadata = {
   title: { default: 'Third Shot Supply Co. | Gear for the patient player', template: '%s | Third Shot Supply Co.' },
   description: 'Premium pickleball paddles, tour-grade balls, bags and court gear. A headless Magento demo store built with Next.js.',
   icons: { icon: '/favicon.svg', apple: '/apple-touch-icon.png' },
-  openGraph: { siteName: 'Third Shot Supply Co. (headless demo)', type: 'website' },
+  // default share image (the home hero, served by the store); product and category pages set their own
+  openGraph: {
+    siteName: 'Third Shot Supply Co. (headless demo)',
+    type: 'website',
+    images: [{ url: `${CLASSIC_URL}/media/wysiwyg/thirdshot/hero.jpg`, width: 1920, height: 960, alt: 'Third Shot paddles and balls on a court at golden hour' }],
+  },
+  twitter: { card: 'summary_large_image' },
   robots: { index: false, follow: true },
 };
 

@@ -5,6 +5,7 @@ import { ProductView } from '../product/ProductView';
 import { Tabs, type TabDef } from '../product/Tabs';
 import { ReviewForm, type RatingMeta } from '../product/ReviewForm';
 import { RecentStrip } from '../product/RecentStrip';
+import { ProductJsonLd } from '../product/ProductJsonLd';
 import { Stars } from '../ProductCard';
 import { CmsContent } from '../CmsContent';
 import { getAttributeLabels, getCategories, getCmsBlocks } from '@/lib/magento/catalog';
@@ -83,7 +84,7 @@ export async function ProductPage({ p }: { p: Product }) {
     count: p.review_count,
     content: (
       <div className="ts-reviews">
-        {p.reviews.items.length > 0 && <h3>Customer Reviews</h3>}
+        {p.reviews.items.length > 0 && <h2 className="ts-reviews__title">Customer reviews</h2>}
         {p.reviews.items.map((r, i) => (
           <article className="ts-review" key={i}>
             <p className="ts-review__title">{r.summary}</p>
@@ -106,6 +107,7 @@ export async function ProductPage({ p }: { p: Product }) {
 
   return (
     <div className="ts-container">
+      <ProductJsonLd p={p} category={top ? { name: top.name, href: `/${top.url_path}.html` } : undefined} />
       <div className="ts-pdp">
         <ProductView
           p={p}

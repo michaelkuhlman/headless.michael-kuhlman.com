@@ -8,6 +8,17 @@ import { magento } from '@/lib/magento/client';
  */
 
 const APP_PREFIXES = ['checkout', 'customer', 'catalogsearch', 'saved', 'contact', 'sales', 'search', 'newsletter', 'page-not-found'];
+// The app's own pages under those prefixes (src/app/**/page.tsx). Anything else there, /checkout/xyz say, used to
+// render the error shell with a 200; now it gets the 404 page with a 404 status. Add new app pages here.
+const APP_PATHS = new Set([
+  '/catalogsearch/result', '/checkout', '/checkout/cart', '/checkout/onepage/success', '/contact',
+  '/customer/account', '/customer/account/create', '/customer/account/edit', '/customer/account/forgotpassword',
+  '/customer/account/login', '/customer/account/logout', '/customer/address', '/newsletter/manage', '/page-not-found',
+  '/sales/guest/form', '/sales/order/history', '/sales/order/view', '/saved', '/search/term/popular',
+]);
+// Files in public/ (served by Next itself). Everything else goes through the checks below; the matcher used to skip
+// any path merely starting with "logo", "favicon" or "sitemap", so e.g. /sitemap-123.xml answered 200 once.
+const PUBLIC_FILES = new Set(['/favicon.svg', '/apple-touch-icon.png', '/logo.svg', '/logo-light.svg', '/mark.svg', '/mark-light.svg', '/robots.txt']);
 const TTL_OK = 10 * 60_000;
 const TTL_MISS = 60_000;
 const seen = new Map<string, { ok: boolean; at: number }>();
@@ -42,14 +53,20 @@ async function notFoundHtml(): Promise<string> {
 export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
   const first = path.split('/')[1] ?? '';
-  if (!first || APP_PREFIXES.includes(first)) return NextResponse.next();
-  const url = path.slice(1).replace(/\/$/, '');
-  if (!/^[a-z0-9\-_./]{1,200}$/i.test(url) || !(await exists(url))) {
-    return new NextResponse(await notFoundHtml(), { status: 404, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'private, no-cache, no-store, max-age=0, must-revalidate' } });
+  if (!first || PUBLIC_FILES.has(path)) return NextResponse.next();
+  if (APP_PREFIXES.includes(first)) {
+    // trailing-slash variants are redirected by Next itself, so compare without it
+    return APP_PATHS.has(path.replace(/\/+$/, '')) ? NextResponse.next() : notFoundResponse();
   }
+  const url = path.slice(1).replace(/\/$/, '');
+  if (!/^[a-z0-9\-_./]{1,200}$/i.test(url) || !(await exists(url))) return notFoundResponse();
   return NextResponse.next();
 }
 
+async function notFoundResponse(): Promise<NextResponse> {
+  return new NextResponse(await notFoundHtml(), { status: 404, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'private, no-cache, no-store, max-age=0, must-revalidate' } });
+}
+
 export const config = {
-  matcher: ['/((?!_next/|api/|icons/|fonts/|favicon|apple-touch-icon|logo|mark|robots\\.txt|sitemap).*)'],
+  matcher: ['/((?!_next/|api/|icons/|fonts/).*)'],
 };
