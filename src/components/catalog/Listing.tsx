@@ -188,9 +188,17 @@ export function Listing({
   }, [q, categoryUid, search, defaultSort]);
 
   const drawerRef = useRef<HTMLDivElement>(null);
+  const pillRef = useRef<HTMLButtonElement>(null);
+  const wasOpen = useRef(false);
   useEffect(() => {
     document.documentElement.classList.toggle('ts-locked', drawer);
-    if (!drawer) return;
+    if (!drawer) {
+      // back to the Filter button that opened it (the close button just left the DOM)
+      if (wasOpen.current) pillRef.current?.focus();
+      wasOpen.current = false;
+      return;
+    }
+    wasOpen.current = true;
     // Escape closes; Tab stays inside the drawer (it is a modal dialog) instead of wandering into the page behind
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') return setDrawer(false);
@@ -208,7 +216,10 @@ export function Listing({
       }
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.documentElement.classList.remove('ts-locked'); // also when the listing unmounts with it open
+    };
   }, [drawer]);
 
   const toggle = useCallback((code: string, value: string) => {
@@ -293,7 +304,7 @@ export function Listing({
       <div className="ts-listing__main">
         <div className="ts-toolbar">
           {aggs.length > 0 && (
-            <button type="button" className="ts-filter-pill" onClick={() => setDrawer(true)}>
+            <button type="button" className="ts-filter-pill" ref={pillRef} onClick={() => setDrawer(true)}>
               <Icon name="filter" /> Filter
               {activeCount > 0 && <span className="ts-filter__badge">{activeCount}</span>}
             </button>

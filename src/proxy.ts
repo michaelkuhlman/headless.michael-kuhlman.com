@@ -31,7 +31,8 @@ async function exists(url: string): Promise<boolean> {
     const d = await magento<{ route: { type: string } | null }>(`query R($u:String!){route(url:$u){type relative_url}}`, { u: url }, { timeoutMs: 4000 });
     ok = !!d.route;
   } catch {
-    ok = true; // Magento hiccup: let the page itself decide rather than 404 a real URL
+    // Magento hiccup: let the page itself decide rather than 404 a real URL, and do not remember the guess
+    return true;
   }
   if (seen.size > 5000) seen.clear();
   seen.set(url, { ok, at: Date.now() });
