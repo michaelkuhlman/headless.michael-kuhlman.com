@@ -18,7 +18,7 @@ const APP_PATHS = new Set([
 ]);
 // Files in public/ (served by Next itself). Everything else goes through the checks below; the matcher used to skip
 // any path merely starting with "logo", "favicon" or "sitemap", so e.g. /sitemap-123.xml answered 200 once.
-const PUBLIC_FILES = new Set(['/favicon.svg', '/apple-touch-icon.png', '/logo.svg', '/logo-light.svg', '/mark.svg', '/mark-light.svg', '/robots.txt']);
+const PUBLIC_FILES = new Set(['/favicon.ico', '/favicon.svg', '/apple-touch-icon.png', '/logo.svg', '/logo-light.svg', '/mark.svg', '/mark-light.svg', '/robots.txt']);
 const TTL_OK = 10 * 60_000;
 const TTL_MISS = 60_000;
 const seen = new Map<string, { ok: boolean; at: number }>();
