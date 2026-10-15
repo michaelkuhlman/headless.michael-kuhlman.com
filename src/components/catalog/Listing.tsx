@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../Icon';
 import { ProductGrid } from '../ProductCard';
 import { money } from '@/lib/format';
+import { BRAND_SWATCHES } from '@/lib/site';
 import type { Aggregation, ProductCard, ProductListResult } from '@/lib/magento/types';
 
 /*
@@ -19,7 +20,8 @@ interface Q {
   dir: 'ASC' | 'DESC';
 }
 
-const COLOR_HEX: Record<string, string> = {};
+const COLOR_HEX: Record<string, string> = { ...BRAND_SWATCHES };
+
 
 function readUrl(defaultSort: Sort): Q {
   const sp = new URLSearchParams(location.search);
@@ -185,10 +187,26 @@ export function Listing({
     return () => ctl.abort();
   }, [q, categoryUid, search, defaultSort]);
 
+  const drawerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     document.documentElement.classList.toggle('ts-locked', drawer);
     if (!drawer) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setDrawer(false);
+    // Escape closes; Tab stays inside the drawer (it is a modal dialog) instead of wandering into the page behind
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') return setDrawer(false);
+      const box = drawerRef.current;
+      if (e.key !== 'Tab' || !box) return;
+      const f = Array.from(box.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), select, [tabindex]:not([tabindex="-1"])')).filter((n) => n.offsetParent !== null);
+      if (!f.length) return;
+      const first = f[0], last = f[f.length - 1], a = document.activeElement;
+      if (e.shiftKey && (a === first || !box.contains(a))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (a === last || !box.contains(a))) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [drawer]);
@@ -284,19 +302,21 @@ export function Listing({
             {res.total_count} {res.total_count === 1 ? 'item' : 'items'}
           </p>
           <div className="ts-sorter">
-            <label htmlFor="ts-sort">Sort By</label>
+            <label htmlFor="ts-sort">Sort by</label>
+            {/* price both ways ("price~desc"), so phones, which hide the direction arrow, can sort high to low too */}
             <select
               id="ts-sort"
-              value={q.sort}
+              value={q.sort === 'price' ? `price~${q.dir.toLowerCase()}` : q.sort}
               onChange={(e) => {
-                const sort = e.target.value as Sort;
-                setQ((s) => ({ ...s, sort, dir: sort === 'relevance' ? 'DESC' : 'ASC' }));
+                const [sort, d] = e.target.value.split('~') as [Sort, string | undefined];
+                setQ((s) => ({ ...s, sort, dir: d === 'desc' || (!d && sort === 'relevance') ? 'DESC' : 'ASC' }));
               }}
             >
               {search && <option value="relevance">Relevance</option>}
               {!search && <option value="position">Featured</option>}
-              <option value="name">Product Name</option>
-              <option value="price">Price</option>
+              <option value="name">Name</option>
+              <option value="price~asc">Price: low to high</option>
+              <option value="price~desc">Price: high to low</option>
             </select>
             <button
               type="button"
@@ -322,6 +342,8 @@ export function Listing({
         )}
         {res.items.length ? (
           <>
+            {/* the cards are h3s: name the grid so the outline runs h1 > h2 > h3 */}
+            <h2 className="sr-only">{search ? 'Search results' : 'Products'}</h2>
             <ProductGrid items={res.items} priorityCount={search ? 3 : 0} />
             <p className="ts-listing__end">
               You&rsquo;ve seen all {res.total_count} {res.total_count === 1 ? 'item' : 'items'}
@@ -337,7 +359,7 @@ export function Listing({
         )}
       </div>
       {drawer && (
-        <div className="ts-fdrawer" role="dialog" aria-modal="true" aria-label="Filter">
+        <div className="ts-fdrawer" role="dialog" aria-modal="true" aria-label="Filter" ref={drawerRef}>
           <div className="ts-fdrawer__head">
             <h2>Filter</h2>
             <button type="button" className="ts-icon-btn" aria-label="Close filters" onClick={() => setDrawer(false)} autoFocus>

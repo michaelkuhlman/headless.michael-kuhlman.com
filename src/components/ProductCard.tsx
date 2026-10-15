@@ -11,7 +11,7 @@ export function Price({ pr, className = '' }: { pr: Card['price_range']; classNa
   if (p.isRange && !p.onSale) {
     return (
       <span className={className}>
-        <span className="ts-price">{money(p.final)}</span> <span className="ts-dash">&ndash;</span> <span className="ts-price">{money(p.max)}</span>
+        <span className="ts-price">{money(p.final)}</span> <span className="ts-dash">to</span> <span className="ts-price">{money(p.max)}</span>
       </span>
     );
   }

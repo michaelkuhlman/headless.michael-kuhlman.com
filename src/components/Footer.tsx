@@ -52,7 +52,7 @@ export function Footer() {
             ] as const
           ).map(([title, links]) => (
             <nav key={title} className="ts-footer__col" aria-label={title}>
-              <h4>{title}</h4>
+              <h2>{title}</h2>
               <ul>
                 {links.map(([label, href]) => (
                   <li key={href}>
@@ -63,10 +63,10 @@ export function Footer() {
             </nav>
           ))}
           <div className="ts-footer__col ts-footer__demo">
-            <h4>About this demo</h4>
+            <h2>About this demo</h2>
             <p>
               A portfolio build by <a href="https://www.michael-kuhlman.com/">Michael Kuhlman</a>, Magento 2 / Adobe Commerce developer. A headless Next.js
-              storefront reading the same Mage-OS 3.5 (Magento Open Source 2.4.9) catalogue over GraphQL as the <a href={CLASSIC_URL + '/'}>classic Luma store</a>{' '}
+              storefront reading the same Mage-OS 3.5 (Magento Open Source 2.4.9) catalog over GraphQL as the <a href={CLASSIC_URL + '/'}>classic Luma store</a>{' '}
               (<a href="https://www.michael-kuhlman.com/work/magento-demo-store">how both were built</a>).
             </p>
           </div>

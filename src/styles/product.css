@@ -38,10 +38,10 @@
 .ts-buy__price--noprice { justify-content: flex-start; }
 .ts-buy__amount { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; line-height: 1.15; }
 .ts-buy__amount .ts-price { font: 600 28px/1.15 var(--ts-sans); color: var(--ts-ink); letter-spacing: -0.01em; }
-.ts-buy__amount .ts-price--special { color: var(--ts-clay); }
+.ts-buy__amount .ts-price--special { color: var(--ts-clay-text); }
 .ts-buy__amount .ts-price--old { font-size: 18px; color: var(--ts-muted); font-weight: 400; text-decoration: line-through; }
 .ts-buy__amount .ts-price-label { font-size: 12.5px; color: var(--ts-muted); font-weight: 500; }
-.ts-buy__amount .ts-dash { color: var(--ts-muted); font-size: 22px; }
+.ts-buy__amount .ts-dash { color: var(--ts-muted); font-size: 15px; font-weight: 400; } /* "From $105 to $243", like the classic store */
 .ts-buy__meta { display: flex; align-items: center; gap: 14px; font-size: 12px; color: var(--ts-muted); white-space: nowrap; }
 .ts-stock { font-weight: 600; font-size: 12.5px; padding: 5px 11px; border-radius: 999px; white-space: nowrap; }
 .ts-stock--in { color: var(--ts-kitchen); background: rgba(46, 94, 74, 0.1); }
@@ -71,7 +71,7 @@
 .ts-swatch--text.is-on { background: var(--ts-kitchen); color: var(--ts-chalk); border-color: var(--ts-kitchen); box-shadow: none; }
 .ts-swatch:disabled, .ts-swatch.is-off { opacity: 0.45; cursor: not-allowed; }
 .ts-swatch.is-off::after { content: ''; position: absolute; left: 50%; top: 4px; bottom: 4px; width: 1.5px; background: var(--ts-muted); transform: rotate(45deg); }
-.ts-buy__hint { color: var(--ts-clay); font-size: 13px; font-weight: 600; margin: -8px 0 14px; }
+.ts-buy__hint { color: var(--ts-clay-text); font-size: 13px; font-weight: 600; margin: -8px 0 14px; }
 
 .ts-tocart { display: flex; gap: 12px; align-items: flex-end; margin: 6px 0 16px; }
 .ts-qty {
@@ -137,7 +137,7 @@
 .ts-tabs__acc { display: none; }
 .ts-tabs__panel { padding: 36px 0 10px; font-size: 16px; line-height: 1.7; color: var(--ts-body); }
 .ts-tabs__panel[hidden] { display: none; }
-.ts-tabs__panel h3 { font-size: var(--ts-h3); font-weight: 500; margin: 28px 0 12px; }
+.ts-tabs__panel h2, .ts-tabs__panel h3 { font-size: var(--ts-h3); font-weight: 500; margin: 28px 0 12px; } /* description subheads are h2 (h1 is the name) */
 .ts-tabs__panel ul { padding-left: 20px; }
 .ts-tabs__panel li { margin-bottom: 8px; }
 .ts-tabs__panel li::marker { color: var(--ts-court); }
@@ -152,7 +152,7 @@
 
 /* reviews */
 .ts-reviews { max-width: 760px; }
-.ts-reviews h3 { margin-top: 0; }
+.ts-reviews h3, .ts-reviews .ts-reviews__title { margin-top: 0; font-size: 18px; font-weight: 600; }
 .ts-review { border-bottom: 1px solid var(--ts-line); padding: 26px 0; }
 .ts-review:first-of-type { padding-top: 6px; }
 .ts-review__title { font-family: var(--ts-serif); font-size: 20px; font-weight: 500; color: var(--ts-ink); margin: 0 0 8px; line-height: 1.3; }

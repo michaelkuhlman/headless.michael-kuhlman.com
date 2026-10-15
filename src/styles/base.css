@@ -10,6 +10,7 @@
   --ts-sand-dark: #d9d0be;
   --ts-optic: #d9f24f;
   --ts-clay: #c9603a;
+  --ts-clay-text: #ad4e2b; /* clay for small text on chalk / paper (4.7:1, AA); --ts-clay stays for stars, icons, borders */
   --ts-ink: #13201b;
   --ts-muted: #5d6b64;
   --ts-line: #dcd4c4;
@@ -274,7 +275,7 @@ input[aria-invalid='true']:focus { box-shadow: 0 0 0 3px rgba(201, 96, 58, 0.18)
 
 /* ---- price ---- */
 .ts-price { font-weight: 700; font-size: 15px; color: var(--ts-ink); white-space: nowrap; }
-.ts-price--special { color: var(--ts-clay); }
+.ts-price--special { color: var(--ts-clay-text); }
 .ts-price--old { color: var(--ts-muted); font-weight: 500; text-decoration: line-through; font-size: 0.86em; margin-left: 6px; }
 .ts-price-label { font-size: 12.5px; color: var(--ts-muted); font-weight: 500; margin-right: 4px; }
 

@@ -32,7 +32,7 @@
 .ts-footer__grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr 1.5fr; gap: 40px; padding: 60px 0 52px; }
 .ts-footer__brand img { width: 188px; max-width: none; height: auto; display: block; margin-bottom: 18px; }
 .ts-footer__brand p { font-size: 14px; line-height: 1.65; max-width: 300px; margin: 0; }
-.ts-footer__col h4 { font: 600 12px/1 var(--ts-sans); letter-spacing: 0.16em; text-transform: uppercase; color: var(--ts-optic); margin: 8px 0 18px; }
+.ts-footer__col h2, .ts-footer__col h4 { font: 600 12px/1 var(--ts-sans); letter-spacing: 0.16em; text-transform: uppercase; color: var(--ts-optic); margin: 8px 0 18px; }
 .ts-footer__col ul { list-style: none; margin: 0; padding: 0; }
 .ts-footer__col li { margin: 0; font-size: 14.5px; }
 .ts-footer__col li a { display: inline-block; padding: 5px 0; white-space: nowrap; }
@@ -53,7 +53,7 @@
   .ts-newsletter { margin: 0; max-width: 560px; }
   .ts-footer__fine { margin-left: 0; }
   .ts-footer__col li a { display: flex; align-items: center; min-height: 44px; padding: 0; white-space: normal; }
-  .ts-footer__col h4 { margin-bottom: 8px; }
+  .ts-footer__col h2, .ts-footer__col h4 { margin-bottom: 8px; }
 }
 @media (max-width: 767px) {
   .ts-footer__news { grid-template-columns: 1fr; gap: 26px; padding: 48px 0 40px; }

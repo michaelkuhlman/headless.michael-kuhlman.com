@@ -36,7 +36,7 @@ export function RecentStrip({ current }: { current?: string }) {
     <section className="ts-strip" aria-labelledby="ts-recent-h">
       <div className="ts-strip__head">
         <div>
-          <span className="ts-eyebrow">Picking up where you left off</span>
+          <span className="ts-eyebrow">Keep browsing</span>
           <h2 id="ts-recent-h">Recently viewed</h2>
         </div>
         <button type="button" className="ts-strip__clear" onClick={() => recent.clear()}>

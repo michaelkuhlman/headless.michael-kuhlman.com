@@ -249,7 +249,7 @@ export function BuyBox({
               <>
                 <span className="ts-price-label">From</span>
                 <Price pr={{ ...price, maximum_price: price.minimum_price }} />
-                <span className="ts-dash">&ndash;</span>
+                <span className="ts-dash">to</span>
                 <span className="ts-price">{money(price.maximum_price.final_price.value)}</span>
               </>
             ) : isConf && !variant && price.maximum_price.final_price.value > price.minimum_price.final_price.value + 0.001 ? (
