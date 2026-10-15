@@ -84,7 +84,9 @@ why: every change is a commit, and every commit is on GitHub within seconds.
 ## Architecture
 - `src/app/[...slug]/page.tsx`: every product / category / CMS URL (same URLs as m2) via GraphQL `route`; all
   prerendered at build (`generateStaticParams`), refreshed by `'use cache'` + `cacheTag` and `/api/revalidate`.
-- `src/proxy.ts`: real 404 status for unknown URLs (cacheComponents streams the shell before `notFound()`).
+- `src/proxy.ts`: real 404 status for unknown URLs (cacheComponents streams the shell before `notFound()`). Under the app
+  prefixes only the pages in `APP_PATHS` pass and `PUBLIC_FILES` lists the files in `public/`: **a new app page or public
+  file must be added there**, or it answers 404.
 - `src/lib/magento/`: server GraphQL client pinned to 127.0.0.1 (GET for catalogue reads so Magento's FPC caches
   them), catalogue queries, types. Browser calls go through `/api/*` route handlers, never straight to Magento.
 - Client state (cart id, saved, recently viewed, searches) in localStorage; customer token in httpOnly `hl_token`.
