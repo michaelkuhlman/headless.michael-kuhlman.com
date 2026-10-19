@@ -5,9 +5,26 @@ import { openerFocus, trapTab } from '@/lib/client/focus';
 import { usePathname } from 'next/navigation';
 import { Icon } from './Icon';
 import { useQuickView, closeQuickView } from '@/lib/client/ui';
-import { Gallery, galleryImages } from './product/Gallery';
-import { BuyBox } from './product/BuyBox';
+import dynamic from 'next/dynamic';
 import type { Product } from '@/lib/magento/types';
+
+// Gallery + BuyBox load on demand (prefetched once the page is idle), not with every page's first JavaScript.
+const loadBody = () => import('./product/QuickViewBody');
+const QuickViewBody = dynamic(loadBody, { ssr: false, loading: () => <Skeleton /> });
+
+function Skeleton() {
+  return (
+    <div className="ts-qv" aria-busy="true">
+      <div className="ts-skeleton" style={{ aspectRatio: '4 / 5' }} />
+      <div>
+        <div className="ts-skeleton" style={{ height: 36, width: '80%', marginBottom: 16 }} />
+        <div className="ts-skeleton" style={{ height: 22, width: '40%', marginBottom: 28 }} />
+        <div className="ts-skeleton" style={{ height: 80, marginBottom: 28 }} />
+        <div className="ts-skeleton" style={{ height: 56, borderRadius: 999 }} />
+      </div>
+    </div>
+  );
+}
 
 const cache = new Map<string, Product>();
 
@@ -22,6 +39,20 @@ export function QuickView() {
   useEffect(() => {
     closeQuickView();
   }, [path]);
+
+  // warm the quick view code after the page has loaded, so the first open does not wait for it
+  useEffect(() => {
+    let idle = 0;
+    const warm = () => {
+      idle = window.requestIdleCallback ? window.requestIdleCallback(() => void loadBody(), { timeout: 4000 }) : window.setTimeout(() => void loadBody(), 1500);
+    };
+    if (document.readyState === 'complete') warm();
+    else window.addEventListener('load', warm, { once: true });
+    return () => {
+      window.removeEventListener('load', warm);
+      if (idle) (window.cancelIdleCallback ?? window.clearTimeout)(idle);
+    };
+  }, []);
 
   useEffect(() => {
     if (!key) {
@@ -64,22 +95,11 @@ export function QuickView() {
           <Icon name="close" />
         </button>
         {p ? (
-          <div className="ts-qv">
-            <Gallery images={galleryImages(p.media_gallery, p.name)} name={p.name} compact />
-            <BuyBox p={p} compact headingLevel={2} onAdded={closeQuickView} />
-          </div>
+          <QuickViewBody p={p} onAdded={closeQuickView} />
         ) : failed ? (
           <p className="ts-msg ts-msg--error">Sorry, this product could not be loaded.</p>
         ) : (
-          <div className="ts-qv" aria-busy="true">
-            <div className="ts-skeleton" style={{ aspectRatio: '4 / 5' }} />
-            <div>
-              <div className="ts-skeleton" style={{ height: 36, width: '80%', marginBottom: 16 }} />
-              <div className="ts-skeleton" style={{ height: 22, width: '40%', marginBottom: 28 }} />
-              <div className="ts-skeleton" style={{ height: 80, marginBottom: 28 }} />
-              <div className="ts-skeleton" style={{ height: 56, borderRadius: 999 }} />
-            </div>
-          </div>
+          <Skeleton />
         )}
       </div>
     </div>
