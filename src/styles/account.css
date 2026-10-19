@@ -117,4 +117,7 @@
 .ts-results__skeleton { min-height: 100vh; align-content: start; }
 .ts-results, .ts-saved { min-height: 75vh; }
 .ts-cart, .ts-cart-empty { min-height: 75vh; align-content: start; }
+/* once "Pairs well with" has rendered it holds the footer down by itself; without this a short bag left a
+   few hundred px of blank space above it on desktop */
+.ts-cart:has(+ .ts-pairs) { min-height: 0; }
 .ts-co[aria-busy='true'] { min-height: 100vh; }
