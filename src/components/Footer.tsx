@@ -66,9 +66,17 @@ export function Footer() {
             <h2>About this demo</h2>
             <p>
               A portfolio build by <a href="https://www.michael-kuhlman.com/">Michael Kuhlman</a>, Magento 2 / Adobe Commerce developer. A headless Next.js
-              storefront reading the same Mage-OS 3.5 (Magento Open Source 2.4.9) catalog over GraphQL as the <a href={CLASSIC_URL + '/'}>classic Luma store</a>{' '}
-              (<a href="https://www.michael-kuhlman.com/work/magento-demo-store">how both were built</a>).
+              storefront reading the same Mage-OS 3.5 (Magento Open Source 2.4.9) catalog over GraphQL as the classic Luma store.
             </p>
+            {/* Same list as the classic store's footer (m2 _build/cms/blocks/ts-footer-columns.html). */}
+            <p className="ts-footer__builds-lead">One catalog, three builds:</p>
+            <ul className="ts-footer__builds">
+              <li><a href={CLASSIC_URL + '/'}>Classic Magento</a></li>
+              <li><span className="ts-footer__current">Headless Next.js <span className="ts-footer__here">(this store)</span></span></li>
+              <li><a href="https://shopify.michael-kuhlman.com/">Shopify <span className="ts-footer__here">(password demo123)</span></a></li>
+              <li><a href="https://compare.michael-kuhlman.com/">Speed comparison</a></li>
+              <li><a href="https://www.michael-kuhlman.com/work/ecommerce-demo">How all three were built</a></li>
+            </ul>
           </div>
         </div>
       </div>

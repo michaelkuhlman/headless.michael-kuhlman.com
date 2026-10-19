@@ -38,6 +38,13 @@
 .ts-footer__col li a { display: inline-block; padding: 5px 0; white-space: nowrap; }
 .ts-footer__col p { font-size: 14px; line-height: 1.65; margin: 0; }
 .ts-footer__demo a { text-decoration: underline !important; text-underline-offset: 3px; }
+/* sibling builds of the same catalog (mirrors m2 ts/_footer.less) */
+.ts-footer__builds-lead { margin-top: 14px !important; color: var(--ts-chalk); font-weight: 600; }
+.ts-footer__demo .ts-footer__builds { margin-top: 2px; }
+.ts-footer__demo .ts-footer__builds a { text-decoration: none !important; }
+.ts-footer__demo .ts-footer__builds a:hover { text-decoration: underline !important; }
+.ts-footer__current { display: inline-block; padding: 5px 0; color: var(--ts-chalk); }
+.ts-footer__here { display: inline-block; font-size: 12.5px; color: rgba(244, 240, 230, 0.6); }
 
 .ts-copyright {
   display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px 24px; text-align: left;
@@ -49,6 +56,9 @@
   .ts-footer__grid { grid-template-columns: 1fr 1fr 1fr; }
   .ts-footer__brand, .ts-footer__demo { grid-column: 1 / -1; }
   .ts-footer__demo p { max-width: 560px; }
+  .ts-footer__current { display: flex; align-items: center; min-height: 44px; padding: 0; }
+  /* flex rows drop the space before the hint */
+  .ts-footer__builds a, .ts-footer__current { flex-wrap: wrap; column-gap: 5px; }
   .ts-footer__news { grid-template-columns: 1fr; gap: 28px; }
   .ts-newsletter { margin: 0; max-width: 560px; }
   .ts-footer__fine { margin-left: 0; }
@@ -62,6 +72,6 @@
   .ts-newsletter button { width: 100%; }
   .ts-footer__fine { margin: 12px 0 0; }
   .ts-footer__grid { grid-template-columns: 1fr 1fr; gap: 28px 20px; padding: 40px 0 36px; }
-  .ts-footer__demo { grid-column: auto; }
+  .ts-footer__demo { grid-column: 1 / -1; }
   .ts-copyright { flex-direction: column; padding: 18px var(--ts-gutter); }
 }
