@@ -32,9 +32,11 @@ This site is written entirely by AI (Claude Code sessions on this server and on 
 or runs git by hand, and Michael only looks at the result now and then. So git is the only record of what changed and
 why: every change is a commit, and every commit is on GitHub within seconds.
 
-- **GitHub**: private `michaelkuhlman/headless.michael-kuhlman.com`
+- **GitHub: PUBLIC since 2026-10-21** `michaelkuhlman/headless.michael-kuhlman.com`
   (https://github.com/michaelkuhlman/headless.michael-kuhlman.com), one branch `main`, no PRs. It is the off-site copy
-  and the channel to the laptop clone. No CI on purpose: the build prerenders every page from the m2 store on this
+  and the channel to the laptop clone. Everything committed, commit messages included, is
+  world-readable for good: no secrets, dumps, customer data, private notes about people, or server internals beyond
+  what this file already says. Commits use the GitHub noreply address, never a real mailbox. No CI on purpose: the build prerenders every page from the m2 store on this
   box, and the account's Actions minutes go to michael-kuhlman.com; the hooks below run the checks instead.
   Dependabot security alerts are on (`gh api repos/michaelkuhlman/headless.michael-kuhlman.com/dependabot/alerts`);
   automatic Dependabot PRs are off (nobody merges PRs here).
@@ -67,8 +69,8 @@ why: every change is a commit, and every commit is on GitHub within seconds.
     warning: usually another session's unfinished work). Fix, re-stage, commit again. Never `--no-verify`.
     Whole-tree audit: `HL_PRECOMMIT_ALL=1 hlgit hook run pre-commit`.
   - `post-commit` / `post-merge` / `post-rewrite` push `main`; `HL_NO_AUTOPUSH=1` skips once.
-  - `pre-push` refuses force-pushes and branch deletions. GitHub's free plan has no branch protection for private
-    repos, so this hook is the protection.
+  - `pre-push` refuses force-pushes and branch deletions. A GitHub ruleset on `main` refuses them too
+    (rulesets became available when the repo went public), and secret scanning with push protection is on.
 - **Never** `--force`, never amend or rebase a pushed commit, never `stash` / `reset --hard` / `checkout -- <file>` /
   `restore` / `clean` in this tree: uncommitted changes here are somebody's live work. Undo with `hlgit revert <sha>`,
   then `hl-deploy`.
